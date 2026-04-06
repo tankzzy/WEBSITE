@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up | TGtradringservices</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 1rem;
+            position: relative;
+        }
+        .auth-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 450px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeInUp 0.5s ease;
+        }
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+        .auth-header h2 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+            color: var(--text-main);
+            font-family: var(--font-body);
+            transition: var(--transition);
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--gold);
+            background: rgba(0,0,0,0.5);
+        }
+        .auth-btn {
+            width: 100%;
+            margin-top: 1rem;
+            text-align: center;
+            cursor: pointer;
+        }
+        .auth-footer {
+            margin-top: 2rem;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        .auth-footer a {
+            color: var(--gold);
+            text-decoration: none;
+        }
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+        .back-link {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+        .back-link:hover {
+            color: var(--gold);
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-bg-accent"></div>
+    <div class="auth-container">
+        <a href="index.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
+        
+        <div class="auth-card">
+            <div class="auth-header">
+                <h2>Create Account</h2>
+                <p>Join TGtradringservices today</p>
+            </div>
+            
+            <form id="signupForm">
+                <div id="formMessage" style="text-align: center; margin-bottom: 1rem; font-size: 0.9rem; font-weight: 500;"></div>
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" id="fullName" class="form-input" placeholder="Enter your full name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" id="email" class="form-input" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="password" class="form-input" placeholder="Create a password" required>
+                </div>
+                
+                <button type="submit" class="btn-primary auth-btn" id="submitBtn">Sign Up Now</button>
+            </form>
+            
+            <div class="auth-footer">
+                Already have an account? <a href="#">Log In</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const fullName = document.getElementById('fullName').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const submitBtn = document.getElementById('submitBtn');
+            const formMessage = document.getElementById('formMessage');
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
+            formMessage.innerHTML = '';
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fullName, email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    formMessage.style.color = 'var(--profit)';
+                    formMessage.textContent = 'Account created successfully! Welcome to TGtradringservices.';
+                    document.getElementById('signupForm').reset();
+                } else {
+                    formMessage.style.color = 'var(--loss)';
+                    formMessage.textContent = data.message || 'Signup failed.';
+                }
+            } catch (err) {
+                console.error(err);
+                formMessage.style.color = 'var(--loss)';
+                formMessage.textContent = 'Server error. Please try again later.';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Sign Up Now';
+            }
+        });
+    </script>
+</body>
+</html>
