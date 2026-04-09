@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import UserDashboardLayout from "../components/UserDashboardLayout";
 import useAuthenticatedUser from "../hooks/useAuthenticatedUser";
 import {
@@ -130,6 +131,15 @@ function useProtectedCollection(path, key) {
 
 export function InvestHistoryPage() {
   const { user } = useAuthenticatedUser();
+  const { items } = useProtectedCollection("/api/investments", "investments");
+
+  const rows = items.map((item) => [
+    item.planName,
+    `$${Number(item.amount || 0).toLocaleString()}`,
+    `${item.durationDays} Days`,
+    item.status,
+    item.returnRateLabel,
+  ]);
 
   return (
     <UserDashboardLayout title="Invest History">
@@ -151,14 +161,14 @@ export function InvestHistoryPage() {
           {
             icon: "fa-layer-group",
             label: "Active Plans",
-            value: "3",
-            description: "Simulated portfolio spread across three model strategies.",
+            value: `${items.length}`,
+            description: "Joined plans currently tracked from your account records.",
           },
           {
             icon: "fa-bolt",
             label: "Best Performing",
-            value: "Growth Prime",
-            description: "Highest current momentum among your active investment tracks.",
+            value: items[0]?.planName || "No plan yet",
+            description: "Your latest joined plan is surfaced here for quick reference.",
           },
         ]}
       />
@@ -166,17 +176,15 @@ export function InvestHistoryPage() {
       <DataTable
         title="Investment History"
         columns={["Plan", "Capital", "Duration", "Status", "Projected ROI"]}
-        rows={[
-          ["Growth Prime", "$1,500", "30 Days", "Active", "14%"],
-          ["Capital Shield", "$800", "14 Days", "Completed", "6%"],
-          ["Index Momentum", "$2,100", "60 Days", "Active", "18%"],
-        ]}
+        rows={rows}
+        emptyText="No investment plans joined yet."
       />
     </UserDashboardLayout>
   );
 }
 
 export function AddFundPage() {
+  const location = useLocation();
   const { user } = useAuthenticatedUser();
   const { items, setItems, message, loading } = useProtectedCollection(
     "/api/transactions",
@@ -190,7 +198,39 @@ export function AddFundPage() {
   const [depositMode, setDepositMode] = useState("crypto");
   const [feedback, setFeedback] = useState("");
   const [feedbackType, setFeedbackType] = useState("");
+  const searchParams = new URLSearchParams(location.search);
+  const fundingIntent = searchParams.get("intent") || "";
+  const selectedPlanId = searchParams.get("planId") || "";
+  const selectedPlanName = searchParams.get("planName") || "";
+  const selectedPlanAmount = searchParams.get("amount") || "";
   const assetMeta = {
+    BNB: {
+      symbol: "BNB",
+      network: "BNB Smart Chain",
+      address: "bnb1ad7x8s9q4x0y2p3l5m7n8r6t1v9z0c5f2k1r7",
+      icon: "fa-coins",
+      accent: "sky",
+      qrLabel: "Scan to deposit BNB",
+      note: "Use only the BNB Smart Chain network when funding this address.",
+    },
+    "USDT(ERC20)": {
+      symbol: "USDT",
+      network: "ERC20 Network",
+      address: "0x8abC3C709f7A2E4aB81610C9b71f7d5d4A0137aB",
+      icon: "fa-dollar-sign",
+      accent: "emerald",
+      qrLabel: "Scan to deposit USDT (ERC20)",
+      note: "Send only ERC20 USDT to this address to avoid delays.",
+    },
+    Solana: {
+      symbol: "SOL",
+      network: "Solana Network",
+      address: "7Pp3K1Q3M7F1tL9N2d4Y8oT6V2rJ4bC8xW5yZ1aQ9pR",
+      icon: "fa-sun",
+      accent: "violet",
+      qrLabel: "Scan to deposit Solana",
+      note: "Confirm you are sending SOL on the Solana network only.",
+    },
     USDT: {
       symbol: "USDT",
       network: "TRC20 Network",
@@ -200,6 +240,15 @@ export function AddFundPage() {
       qrLabel: "Scan to deposit USDT",
       note: "Send only USDT on TRC20 to this wallet address.",
     },
+    Ethereum: {
+      symbol: "ETH",
+      network: "ERC20 Native",
+      address: "0x61A4D08a8B1E4c60E4aB8aD92A6847B6f5E8c9d2",
+      icon: "fa-diamond",
+      accent: "sky",
+      qrLabel: "Scan to deposit Ethereum",
+      note: "Only send ETH using the Ethereum network.",
+    },
     Bitcoin: {
       symbol: "BTC",
       network: "Native Network",
@@ -208,6 +257,15 @@ export function AddFundPage() {
       accent: "amber",
       qrLabel: "Scan to deposit BTC",
       note: "Only send BTC to this address to avoid permanent loss.",
+    },
+    Litecoin: {
+      symbol: "LTC",
+      network: "Litecoin Network",
+      address: "ltc1q0vmx7w3n9k5q8h2r7d1c6p4t9s0l3m2n5v8k4j",
+      icon: "fa-litecoin-sign",
+      accent: "amber",
+      qrLabel: "Scan to deposit Litecoin",
+      note: "Send Litecoin only to this address.",
     },
     "Bank Transfer": {
       symbol: "BANK",
@@ -229,6 +287,21 @@ export function AddFundPage() {
     },
   };
   const currentAsset = assetMeta[formState.method] || assetMeta.USDT;
+  const quickAmounts = selectedPlanAmount
+    ? ["100", "500", "1000", selectedPlanAmount]
+    : ["100", "500", "1000", "5000"];
+
+  useEffect(() => {
+    if (fundingIntent === "investment-plan") {
+      setFormState((prev) => ({
+        ...prev,
+        amount: selectedPlanAmount || prev.amount,
+        details: selectedPlanName
+          ? `Funding ${selectedPlanName} (${selectedPlanId})`
+          : prev.details,
+      }));
+    }
+  }, [fundingIntent, selectedPlanAmount, selectedPlanId, selectedPlanName]);
 
   const handleCopyAddress = async () => {
     try {
@@ -249,7 +322,12 @@ export function AddFundPage() {
           "Content-Type": "application/json",
           ...createAuthHeaders("authToken"),
         },
-        body: JSON.stringify(formState),
+        body: JSON.stringify({
+          ...formState,
+          purpose: fundingIntent || "general",
+          planId: selectedPlanId,
+          planName: selectedPlanName,
+        }),
       });
 
       const data = await parseApiResponse(response);
@@ -259,7 +337,14 @@ export function AddFundPage() {
       }
 
       setItems((prev) => [data.transaction, ...prev]);
-      setFormState({ amount: "", method: "USDT", details: "" });
+      setFormState({
+        amount: fundingIntent === "investment-plan" ? selectedPlanAmount : "",
+        method: "USDT",
+        details:
+          fundingIntent === "investment-plan" && selectedPlanName
+            ? `Funding ${selectedPlanName} (${selectedPlanId})`
+            : "",
+      });
       setFeedbackType("profit");
       setFeedback(data.message);
     } catch (error) {
@@ -283,18 +368,59 @@ export function AddFundPage() {
     <UserDashboardLayout title="Add Fund">
       <section className="add-fund-hero glass-panel">
         <div className="add-fund-hero-copy">
-          <span className="auth-eyebrow">Wallet Funding</span>
-          <h2>Add funds with a premium treasury flow</h2>
+          <span className="auth-eyebrow">
+            {fundingIntent === "investment-plan" ? "Fund Your Account" : "Wallet Funding"}
+          </span>
+          <h2>
+            {fundingIntent === "investment-plan"
+              ? `Fund ${selectedPlanName || "your selected plan"} securely`
+              : "Add funds with a premium treasury flow"}
+          </h2>
           <p>
-            Securely prepare a deposit, choose your preferred settlement rail,
-            and review the address details before you submit your funding request.
+            {fundingIntent === "investment-plan"
+              ? "Secure deposits to activate your selected investment plan. Choose a payment method, confirm the amount, and submit the funding request."
+              : "Securely prepare a deposit, choose your preferred settlement rail, and review the address details before you submit your funding request."}
           </p>
         </div>
         <div className="add-fund-hero-chip">
-          <span>Available balance</span>
-          <strong>{`$${Number(user?.mainBalance || 0).toLocaleString()}`}</strong>
+          <span>{fundingIntent === "investment-plan" ? "Selected plan amount" : "Available balance"}</span>
+          <strong>
+            {fundingIntent === "investment-plan"
+              ? `$${Number(selectedPlanAmount || 0).toLocaleString()}`
+              : `$${Number(user?.mainBalance || 0).toLocaleString()}`}
+          </strong>
         </div>
       </section>
+
+      {fundingIntent === "investment-plan" ? (
+        <section className="investment-funding-strip glass-panel">
+          <div className="investment-funding-strip-head">
+            <div>
+              <h3>Quick amounts</h3>
+              <p>Use a preset amount or keep the selected plan amount.</p>
+            </div>
+            <span className="investment-funding-secure">
+              <i className="fa-solid fa-shield-halved" /> Secure
+            </span>
+          </div>
+          <div className="investment-funding-quick">
+            {quickAmounts.map((amount) => (
+              <button
+                key={amount}
+                type="button"
+                onClick={() =>
+                  setFormState((prev) => ({
+                    ...prev,
+                    amount,
+                  }))
+                }
+              >
+                {`$${Number(amount).toLocaleString()}`}
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="add-fund-grid">
         <div className="add-fund-primary">
@@ -320,7 +446,9 @@ export function AddFundPage() {
 
           <section className="add-fund-glass-panel glass-panel">
             <div className="add-fund-panel-head">
-              <span className="add-fund-label">Select Asset</span>
+              <span className="add-fund-label">
+                {fundingIntent === "investment-plan" ? "Make a Deposit" : "Select Asset"}
+              </span>
               <div className={`add-fund-asset-card ${currentAsset.accent}`}>
                 <div className="add-fund-asset-badge">
                   <i className={`fa-solid ${currentAsset.icon}`} />
@@ -335,7 +463,9 @@ export function AddFundPage() {
             <form className="add-fund-form" onSubmit={handleSubmit}>
               <div className={`form-message ${feedbackType}`}>{feedback || " "}</div>
               <div className="form-group">
-                <label className="form-label">Funding Method</label>
+                <label className="form-label">
+                  {fundingIntent === "investment-plan" ? "Payment Method" : "Funding Method"}
+                </label>
                 <select
                   className="form-input"
                   value={formState.method}
@@ -345,7 +475,12 @@ export function AddFundPage() {
                 >
                   {depositMode === "crypto" ? (
                     <>
+                      <option>BNB</option>
+                      <option>USDT(ERC20)</option>
+                      <option>Solana</option>
                       <option>USDT</option>
+                      <option>Litecoin</option>
+                      <option>Ethereum</option>
                       <option>Bitcoin</option>
                       <option>Perfect Money</option>
                     </>
@@ -355,7 +490,9 @@ export function AddFundPage() {
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">Amount</label>
+                <label className="form-label">
+                  {fundingIntent === "investment-plan" ? "Amount to Deposit" : "Amount"}
+                </label>
                 <input
                   className="form-input"
                   type="number"
@@ -365,6 +502,11 @@ export function AddFundPage() {
                   }
                   placeholder="Enter amount"
                 />
+                {fundingIntent === "investment-plan" ? (
+                  <span className="add-fund-field-note">
+                    Enter the amount you wish to deposit for {selectedPlanName || "this plan"}.
+                  </span>
+                ) : null}
               </div>
               <div className="form-group add-fund-form-span">
                 <label className="form-label">Wallet / Reference</label>
@@ -396,7 +538,9 @@ export function AddFundPage() {
               </div>
               <div className="user-form-action">
                 <button type="submit" className="btn-primary">
-                  Create Deposit Request
+                  {fundingIntent === "investment-plan"
+                    ? "Proceed with Deposit"
+                    : "Create Deposit Request"}
                 </button>
               </div>
             </form>
@@ -404,6 +548,32 @@ export function AddFundPage() {
         </div>
 
         <div className="add-fund-sidebar">
+          {fundingIntent === "investment-plan" ? (
+            <section className="add-fund-history-card glass-panel">
+              <div className="user-panel-head">
+                <h3>Payment Methods</h3>
+              </div>
+              <div className="investment-payment-methods">
+                {["BNB", "USDT(ERC20)", "Solana", "USDT", "Litecoin", "Ethereum", "Bitcoin"].map((method) => (
+                  <button
+                    key={method}
+                    type="button"
+                    className={formState.method === method ? "active" : ""}
+                    onClick={() =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        method,
+                      }))
+                    }
+                  >
+                    <i className="fa-regular fa-credit-card" />
+                    <span>{method}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
           <section className="add-fund-qr-panel glass-panel">
             <div className="add-fund-qr-code">
               <div className="add-fund-qr-pattern" />
@@ -417,11 +587,30 @@ export function AddFundPage() {
 
           <section className="add-fund-history-card glass-panel">
             <div className="user-panel-head">
-              <h3>Recent Deposit Activity</h3>
-              <p>Latest requests across your account funding timeline.</p>
+              <h3>{fundingIntent === "investment-plan" ? "How to Deposit" : "Recent Deposit Activity"}</h3>
+              <p>
+                {fundingIntent === "investment-plan"
+                  ? "Choose your payment method, enter your amount, and complete secure payment."
+                  : "Latest requests across your account funding timeline."}
+              </p>
             </div>
             <div className="add-fund-activity-list">
-              {depositRows.length > 0 ? (
+              {fundingIntent === "investment-plan" ? (
+                <div className="investment-deposit-steps">
+                  <article>
+                    <strong>1</strong>
+                    <span>Choose your payment method</span>
+                  </article>
+                  <article>
+                    <strong>2</strong>
+                    <span>Enter deposit amount</span>
+                  </article>
+                  <article>
+                    <strong>3</strong>
+                    <span>Complete secure payment</span>
+                  </article>
+                </div>
+              ) : depositRows.length > 0 ? (
                 depositRows.slice(0, 3).map((row) => (
                   <article key={row[0]} className="add-fund-activity-item">
                     <div className="add-fund-activity-icon">
@@ -798,9 +987,27 @@ export function WithdrawalHistoryPage() {
 
 export function MyReferralPage() {
   const { user } = useAuthenticatedUser();
-  const referralCode = user?._id
-    ? `https://tradilinkcapital.com/auth/register/${user._id.slice(-8)}`
-    : "https://tradilinkcapital.com/auth/register/invite";
+  const { items, message, loading } = useProtectedCollection(
+    "/api/referrals",
+    "referrals",
+  );
+  const referralIdentifier = user?.referralCode || user?.id;
+  const referralCode = referralIdentifier
+    ? `${window.location.origin}/signup?ref=${referralIdentifier}`
+    : `${window.location.origin}/signup`;
+  const referralTimeline = items.slice(0, 4).map((item) => ({
+    title: item.fullName,
+    description: `${item.email} joined from your referral link.`,
+    time: new Date(item.createdAt).toLocaleDateString(),
+  }));
+
+  const handleCopyReferral = async () => {
+    try {
+      await navigator.clipboard.writeText(referralCode);
+    } catch (error) {
+      console.error("Failed to copy referral link", error);
+    }
+  };
 
   return (
     <UserDashboardLayout title="My Referral">
@@ -823,7 +1030,11 @@ export function MyReferralPage() {
               <input className="form-input" value={referralCode} readOnly />
             </div>
             <div className="user-form-action">
-              <button type="button" className="btn-primary">
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={handleCopyReferral}
+              >
                 Copy Referral Link
               </button>
             </div>
@@ -835,14 +1046,14 @@ export function MyReferralPage() {
             {
               icon: "fa-user-plus",
               label: "Active Referrals",
-              value: "12",
-              description: "Members currently linked to your invitation path.",
+              value: `${user?.referralCount || items.length}`,
+              description: "Members currently linked to your referral path.",
             },
             {
               icon: "fa-chart-pie",
-              label: "Conversion Rate",
-              value: "68%",
-              description: "Recent referral performance across your invitation traffic.",
+              label: "Referral Code",
+              value: referralIdentifier || "Pending",
+              description: "Identifier attached to your referral signup link.",
             },
           ]}
         />
@@ -850,18 +1061,19 @@ export function MyReferralPage() {
 
       <TimelinePanel
         title="Referral Activity"
-        items={[
-          {
-            title: "New referral registered",
-            description: "A recently invited user completed signup from your referral code.",
-            time: "Today",
-          },
-          {
-            title: "Commission milestone hit",
-            description: "Your referral network crossed a fresh earnings threshold.",
-            time: "2 days ago",
-          },
-        ]}
+        items={
+          referralTimeline.length > 0
+            ? referralTimeline
+            : [
+                {
+                  title: loading ? "Loading referrals" : "No referrals yet",
+                  description:
+                    message ||
+                    "Share your referral link to start building your network.",
+                  time: "Current",
+                },
+              ]
+        }
       />
     </UserDashboardLayout>
   );
@@ -936,7 +1148,7 @@ export function ProfileSettingsPage() {
           <form className="user-form-grid">
             <div className="form-group">
               <label className="form-label">Full Name</label>
-              <input className="form-input" value={user?.name || ""} readOnly />
+              <input className="form-input" value={user?.fullName || ""} readOnly />
             </div>
             <div className="form-group">
               <label className="form-label">Email Address</label>

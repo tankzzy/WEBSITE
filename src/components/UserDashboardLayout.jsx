@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { NavLink, Navigate, useNavigate } from "react-router-dom";
 import useAuthenticatedUser from "../hooks/useAuthenticatedUser";
 
 const sidebarItems = [
   { icon: "fa-gauge-high", label: "Dashboard", to: "/dashboard" },
+  { icon: "fa-layer-group", label: "Investment Plan", to: "/investment-plan" },
   { icon: "fa-chart-column", label: "Invest History", to: "/invest-history" },
   { icon: "fa-wallet", label: "Add Fund", to: "/add-fund" },
   { icon: "fa-clock-rotate-left", label: "Fund History", to: "/fund-history" },
@@ -19,15 +21,43 @@ const sidebarItems = [
 function UserDashboardLayout({ title, children }) {
   const navigate = useNavigate();
   const { user, token, message } = useAuthenticatedUser();
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || document.body.dataset.theme || "dark",
+  );
 
   if (!user || !token) {
     return <Navigate to="/login" replace />;
   }
 
+  const toggleTheme = () => {
+    const nextTheme = theme === "light" ? "dark" : "light";
+    setTheme(nextTheme);
+    document.body.dataset.theme = nextTheme;
+    localStorage.setItem("theme", nextTheme);
+    window.dispatchEvent(
+      new CustomEvent("app-theme-change", {
+        detail: { theme: nextTheme },
+      }),
+    );
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("authUser");
     navigate("/login");
+  };
+
+  const referralIdentifier = user?.referralCode || user?.id;
+  const referralLink = referralIdentifier
+    ? `${window.location.origin}/signup?ref=${referralIdentifier}`
+    : `${window.location.origin}/signup`;
+
+  const handleCopyReferral = async () => {
+    try {
+      await navigator.clipboard.writeText(referralLink);
+    } catch (error) {
+      console.error("Failed to copy referral link", error);
+    }
   };
 
   return (
@@ -51,6 +81,14 @@ function UserDashboardLayout({ title, children }) {
               <NavLink to="/invest-history" className="dashboard-header-link">
                 Portfolio
               </NavLink>
+              <button
+                type="button"
+                className="dashboard-header-referral"
+                onClick={handleCopyReferral}
+              >
+                <i className="fa-regular fa-copy" />
+                <span>Referral Link</span>
+              </button>
             </nav>
           </div>
 
@@ -59,6 +97,19 @@ function UserDashboardLayout({ title, children }) {
               <i className="fa-solid fa-magnifying-glass" />
               <input type="text" placeholder="Search markets..." />
             </label>
+            <span className="dashboard-theme-label">
+              {theme === "light" ? "Light Mode" : "Dark Mode"}
+            </span>
+            <button
+              type="button"
+              className="dashboard-theme-toggle"
+              aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+              onClick={toggleTheme}
+            >
+              <i
+                className={`fa-solid ${theme === "light" ? "fa-moon" : "fa-sun"}`}
+              />
+            </button>
             <button
               type="button"
               className="dashboard-bell"
@@ -145,13 +196,13 @@ function UserDashboardLayout({ title, children }) {
             <i className="fa-solid fa-chart-column" />
             <span>Markets</span>
           </NavLink>
+          <NavLink to="/investment-plan" className="dashboard-mobile-nav-item">
+            <i className="fa-solid fa-layer-group" />
+            <span>Plans</span>
+          </NavLink>
           <NavLink to="/add-fund" className="dashboard-mobile-nav-item">
             <i className="fa-solid fa-wallet" />
             <span>Wallet</span>
-          </NavLink>
-          <NavLink to="/profile-settings" className="dashboard-mobile-nav-item">
-            <i className="fa-solid fa-gear" />
-            <span>Profile</span>
           </NavLink>
         </nav>
       </div>

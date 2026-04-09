@@ -132,6 +132,13 @@ function Login() {
           </div>
 
           <div className="login-showcase">
+            <div className="signup-kicker">
+              <span className="hero-kicker-pill">
+                <i className="fa-solid fa-lock" />
+                Secure member access
+              </span>
+              <span className="hero-kicker-note">Re-enter your live trading workspace</span>
+            </div>
             <span className="auth-eyebrow">Secure Returning Access</span>
             <h1>Pick up where you left off in the market.</h1>
             <p className="login-lead">

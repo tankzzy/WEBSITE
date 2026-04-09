@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { apiUrl } from "../config/api";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { apiUrl, parseApiResponse } from "../config/api";
 
 const signupBenefits = [
   "Secure onboarding with encrypted credentials",
@@ -8,26 +8,26 @@ const signupBenefits = [
   "Fast deposits, withdrawals, and account support",
 ];
 
-async function parseResponse(response) {
-  const contentType = response.headers.get("content-type") || "";
-
-  if (contentType.includes("application/json")) {
-    return response.json();
-  }
-
-  const text = await response.text();
-  return { message: text || "Unexpected server response." };
-}
-
 function Signup() {
+  const navigate = useNavigate();
   const [formState, setFormState] = useState({
     fullName: "",
     email: "",
     password: "",
+    referralCode: "",
   });
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const referredCode = params.get("ref");
+
+    if (referredCode) {
+      setFormState((prev) => ({ ...prev, referralCode: referredCode }));
+    }
+  }, []);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -46,13 +46,12 @@ function Signup() {
         body: JSON.stringify(formState),
       });
 
-      const data = await parseResponse(response);
+      const data = await parseApiResponse(response);
       if (response.ok) {
-        setMessageType("profit");
-        setMessage(
-          "Account created successfully! Welcome to TGtradringservices.",
-        );
-        setFormState({ fullName: "", email: "", password: "" });
+        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("authUser", JSON.stringify(data.user));
+        navigate("/dashboard");
+        return;
       } else {
         setMessageType("loss");
         setMessage(data.message || "Signup failed.");
@@ -78,6 +77,13 @@ function Signup() {
 
         <section className="signup-layout">
           <div className="signup-showcase">
+            <div className="signup-kicker">
+              <span className="hero-kicker-pill">
+                <i className="fa-solid fa-shield-halved" />
+                Premium onboarding
+              </span>
+              <span className="hero-kicker-note">Secure access to global markets</span>
+            </div>
             <span className="auth-eyebrow">Open Your Trading Account</span>
             <h1>Create your account and start trading with confidence.</h1>
             <p className="signup-lead">
@@ -170,6 +176,22 @@ function Signup() {
                 />
               </div>
 
+              {formState.referralCode ? (
+                <div className="form-group">
+                  <label className="form-label" htmlFor="referralCode">
+                    Referral Code
+                  </label>
+                  <input
+                    className="form-input"
+                    id="referralCode"
+                    name="referralCode"
+                    type="text"
+                    value={formState.referralCode}
+                    readOnly
+                  />
+                </div>
+              ) : null}
+
               <button
                 type="submit"
                 className="btn-primary auth-btn"
@@ -188,7 +210,7 @@ function Signup() {
             </form>
 
             <div className="auth-footer">
-              Already have an account? <Link to="/login">Log In</Link>
+              Already have an account? <Link to="/login" replace>Log In</Link>
             </div>
           </div>
         </section>

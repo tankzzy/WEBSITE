@@ -1,19 +1,36 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
 import UserDashboardLayout from "../components/UserDashboardLayout";
 import useAuthenticatedUser from "../hooks/useAuthenticatedUser";
+import {
+  apiUrl,
+  createAuthHeaders,
+  parseApiResponse,
+} from "../config/api";
 
-const marketTrends = [
-  { name: "Bitcoin", symbol: "BTC", price: "$67,432.10", change: "+1.2%", direction: "up", accent: "btc", icon: "fa-bitcoin-sign" },
-  { name: "Ethereum", symbol: "ETH", price: "$2,642.55", change: "+3.8%", direction: "up", accent: "eth", icon: "fa-diamond" },
-  { name: "Solana", symbol: "SOL", price: "$164.20", change: "-0.5%", direction: "down", accent: "sol", icon: "fa-sun" },
-  { name: "Cardano", symbol: "ADA", price: "$0.3421", change: "+0.8%", direction: "up", accent: "ada", icon: "fa-circle-nodes" },
-];
+const tradeAssets = ["EURUSD", "GBPUSD", "BTCUSDT", "ETHUSDT", "AAPL", "TSLA"];
+const leverageOptions = ["1x", "5x", "10x", "25x", "50x"];
+const expirationOptions = ["1h", "6h", "12h", "24h", "7d"];
 
 const quickActions = [
   { label: "Deposit", icon: "fa-circle-plus", to: "/add-fund", accent: "primary" },
   { label: "Withdraw", icon: "fa-arrow-up", to: "/withdrawal", accent: "secondary" },
   { label: "Transfer", icon: "fa-right-left", to: "/transfer", accent: "filled" },
+];
+
+const walletProviders = [
+  "Trust Wallet",
+  "Coinbase Wallet",
+  "Blockchain.com",
+  "Exodus",
+  "MetaMask",
+  "Ledger Live",
+  "Trezor Suite",
+  "Binance Web3 Wallet",
+  "SafePal",
+  "Phantom",
+  "Atomic Wallet",
+  "Other",
 ];
 
 function formatCurrency(value) {
@@ -24,7 +41,50 @@ function formatCurrency(value) {
 }
 
 function Dashboard() {
-  const { user } = useAuthenticatedUser();
+  const { user, setUser } = useAuthenticatedUser();
+  const [walletForm, setWalletForm] = useState({
+    provider: walletProviders[0],
+    walletLabel: "",
+    walletAddress: "",
+  });
+  const [walletFeedback, setWalletFeedback] = useState("");
+  const [walletFeedbackType, setWalletFeedbackType] = useState("");
+  const [walletSubmitting, setWalletSubmitting] = useState(false);
+  const [tradeHistory, setTradeHistory] = useState([]);
+  const [tradeForm, setTradeForm] = useState({
+    asset: "EURUSD",
+    amount: "",
+    leverage: "5x",
+    expiration: "24h",
+  });
+  const [tradeFeedback, setTradeFeedback] = useState("");
+  const [tradeFeedbackType, setTradeFeedbackType] = useState("");
+  const [tradeSubmitting, setTradeSubmitting] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadTradeData = async () => {
+      try {
+        const tradesResponse = await fetch(apiUrl("/api/trades"), {
+          headers: createAuthHeaders("authToken"),
+        });
+        const tradesData = await parseApiResponse(tradesResponse);
+
+        if (tradesResponse.ok && isMounted) {
+          setTradeHistory(tradesData.trades || []);
+        }
+      } catch (error) {
+        console.error("Failed to load trade history", error);
+      }
+    };
+
+    loadTradeData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const totalBalance = useMemo(() => {
     return (
@@ -82,55 +142,126 @@ function Dashboard() {
     [user],
   );
 
-  const recentActivity = useMemo(
-    () => [
-      {
-        title: "Account funded",
-        meta: "Primary wallet credit",
-        amount: `+${formatCurrency(user?.totalDeposit)}`,
-        detail: "Treasury confirmation received",
-        icon: "fa-arrow-down",
-        accent: "primary",
-      },
-      {
-        title: "Investment performance",
-        meta: "Current profit cycle",
-        amount: `+${formatCurrency(user?.totalEarn)}`,
-        detail: "Yield distributed to the account",
-        icon: "fa-chart-column",
-        accent: "tertiary",
-      },
-      {
-        title: "Referral bonus",
-        meta: "Network reward",
-        amount: `+${formatCurrency(user?.lastReferralBonus)}`,
-        detail: "Latest bonus ledger update",
-        icon: "fa-gift",
-        accent: "gold",
-      },
-    ],
-    [user],
-  );
+  const handleWalletChange = (event) => {
+    const { name, value } = event.target;
+    setWalletForm((prev) => ({ ...prev, [name]: value }));
+  };
 
-  const referralLink = useMemo(() => {
-    if (user?._id) {
-      return `https://tradilinkcapital.com/auth/register/${user._id.slice(-8)}`;
-    }
+  const handleWalletSubmit = async (event) => {
+    event.preventDefault();
+    setWalletSubmitting(true);
+    setWalletFeedback("");
 
-    if (user?.fullName) {
-      return `https://tradilinkcapital.com/auth/register/${user.fullName
-        .toLowerCase()
-        .replace(/\s+/g, "")}`;
-    }
-
-    return "https://tradilinkcapital.com/auth/register/invite";
-  }, [user]);
-
-  const handleCopyReferral = async () => {
     try {
-      await navigator.clipboard.writeText(referralLink);
+      const response = await fetch(apiUrl(`/api/users/${user?.id}/wallets`), {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...createAuthHeaders("authToken"),
+        },
+        body: JSON.stringify({
+          action: "add",
+          provider: walletForm.provider,
+          walletLabel: walletForm.walletLabel,
+          walletAddress: walletForm.walletAddress,
+        }),
+      });
+
+      const data = await parseApiResponse(response);
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to connect wallet.");
+      }
+
+      setUser(data.user);
+      localStorage.setItem("authUser", JSON.stringify(data.user));
+      setWalletFeedbackType("profit");
+      setWalletFeedback(data.message || "Wallet connected successfully.");
+      setWalletForm({
+        provider: walletProviders[0],
+        walletLabel: "",
+        walletAddress: "",
+      });
     } catch (error) {
-      console.error("Failed to copy referral link", error);
+      setWalletFeedbackType("loss");
+      setWalletFeedback(error.message);
+    } finally {
+      setWalletSubmitting(false);
+    }
+  };
+
+  const handleWalletRemove = async (walletId) => {
+    setWalletFeedback("");
+    setWalletSubmitting(true);
+
+    try {
+      const response = await fetch(apiUrl(`/api/users/${user?.id}/wallets`), {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...createAuthHeaders("authToken"),
+        },
+        body: JSON.stringify({
+          action: "remove",
+          walletId,
+        }),
+      });
+
+      const data = await parseApiResponse(response);
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to remove wallet.");
+      }
+
+      setUser(data.user);
+      localStorage.setItem("authUser", JSON.stringify(data.user));
+      setWalletFeedbackType("profit");
+      setWalletFeedback(data.message || "Wallet removed successfully.");
+    } catch (error) {
+      setWalletFeedbackType("loss");
+      setWalletFeedback(error.message);
+    } finally {
+      setWalletSubmitting(false);
+    }
+  };
+
+  const handleTradeFieldChange = (event) => {
+    const { name, value } = event.target;
+    setTradeForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handlePlaceTrade = async (side) => {
+    setTradeSubmitting(true);
+    setTradeFeedback("");
+
+    try {
+      const response = await fetch(apiUrl("/api/trades"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...createAuthHeaders("authToken"),
+        },
+        body: JSON.stringify({
+          ...tradeForm,
+          side,
+        }),
+      });
+
+      const data = await parseApiResponse(response);
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to place trade.");
+      }
+
+      setTradeFeedbackType("profit");
+      setTradeFeedback(data.message || "Trade placed successfully.");
+      setTradeHistory((prev) => [data.trade, ...prev].slice(0, 10));
+      setTradeForm((prev) => ({ ...prev, amount: "" }));
+    } catch (error) {
+      setTradeFeedbackType("loss");
+      setTradeFeedback(error.message);
+    } finally {
+      setTradeSubmitting(false);
     }
   };
 
@@ -181,6 +312,24 @@ function Dashboard() {
             </div>
           </div>
 
+          <section className="dashboard-actions-panel dashboard-actions-panel-inline glass-panel">
+            <div className="dashboard-section-head compact">
+              <h3>Vault Terminal</h3>
+            </div>
+            <div className="dashboard-actions-grid dashboard-actions-grid-inline">
+              {quickActions.map((action) => (
+                <NavLink
+                  key={action.label}
+                  to={action.to}
+                  className={`dashboard-action-button dashboard-action-button-inline ${action.accent}`}
+                >
+                  <i className={`fa-solid ${action.icon}`} />
+                  <span>{action.label}</span>
+                </NavLink>
+              ))}
+            </div>
+          </section>
+
           <div className="dashboard-asset-grid">
             {assetBreakdown.map((asset) => (
               <article key={asset.name} className="dashboard-asset-card glass-panel">
@@ -199,31 +348,6 @@ function Dashboard() {
             ))}
           </div>
 
-          <section className="dashboard-activity-panel glass-panel">
-            <div className="dashboard-section-head">
-              <h3>Recent Activity</h3>
-              <NavLink to="/transaction">View All</NavLink>
-            </div>
-
-            <div className="dashboard-activity-list">
-              {recentActivity.map((item) => (
-                <article key={item.title} className="dashboard-activity-item">
-                  <div className={`dashboard-activity-icon ${item.accent}`}>
-                    <i className={`fa-solid ${item.icon}`} />
-                  </div>
-                  <div className="dashboard-activity-copy">
-                    <strong>{item.title}</strong>
-                    <span>{item.meta}</span>
-                  </div>
-                  <div className="dashboard-activity-metric">
-                    <strong>{item.amount}</strong>
-                    <span>{item.detail}</span>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
-
           <section className="dashboard-account-stats">
             <div className="dashboard-section-head">
               <h3>Account Statistics</h3>
@@ -238,91 +362,226 @@ function Dashboard() {
               ))}
             </div>
           </section>
-        </section>
 
-        <aside className="dashboard-secondary-column">
-          <section className="dashboard-actions-panel glass-panel">
-            <div className="dashboard-section-head compact">
-              <h3>Vault Terminal</h3>
+          <section className="dashboard-trade-side">
+              <section className="dashboard-quick-trade-hero glass-panel">
+                <i className="fa-solid fa-bolt" />
+                <h3>Quick Trade</h3>
+                <p>Start a new trade instantly or explore investment plans.</p>
+              </section>
+
+              <section className="dashboard-trade-form-panel glass-panel">
+                <div className="dashboard-section-head compact">
+                  <h3>Place a Trade</h3>
+                </div>
+
+                <div className={`form-message ${tradeFeedbackType}`}>{tradeFeedback || " "}</div>
+
+                <div className="dashboard-trade-form">
+                  <div className="form-group">
+                    <label className="form-label">Asset</label>
+                    <select
+                      className="form-input"
+                      name="asset"
+                      value={tradeForm.asset}
+                      onChange={handleTradeFieldChange}
+                    >
+                      {tradeAssets.map((asset) => (
+                        <option key={asset}>{asset}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Amount</label>
+                    <input
+                      className="form-input"
+                      name="amount"
+                      type="number"
+                      placeholder="Invest Amount (0.00)"
+                      value={tradeForm.amount}
+                      onChange={handleTradeFieldChange}
+                    />
+                    <span className="dashboard-trade-hint">Min: $50, Max: $500,000</span>
+                  </div>
+
+                  <div className="dashboard-trade-grid">
+                    <div className="form-group">
+                      <label className="form-label">Leverage</label>
+                      <select
+                        className="form-input"
+                        name="leverage"
+                        value={tradeForm.leverage}
+                        onChange={handleTradeFieldChange}
+                      >
+                        {leverageOptions.map((option) => (
+                          <option key={option}>{option}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Expiration</label>
+                      <select
+                        className="form-input"
+                        name="expiration"
+                        value={tradeForm.expiration}
+                        onChange={handleTradeFieldChange}
+                      >
+                        {expirationOptions.map((option) => (
+                          <option key={option}>{option}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="dashboard-trade-actions">
+                    <button
+                      type="button"
+                      className="dashboard-trade-btn buy"
+                      disabled={tradeSubmitting}
+                      onClick={() => handlePlaceTrade("buy")}
+                    >
+                      <i className="fa-solid fa-arrow-trend-up" /> BUY
+                    </button>
+                    <button
+                      type="button"
+                      className="dashboard-trade-btn sell"
+                      disabled={tradeSubmitting}
+                      onClick={() => handlePlaceTrade("sell")}
+                    >
+                      <i className="fa-solid fa-arrow-trend-down" /> SELL
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              <section className="dashboard-trade-history-panel glass-panel">
+                <div className="dashboard-section-head compact">
+                  <h3>Recent Trades</h3>
+                </div>
+                <div className="dashboard-trade-history-list">
+                  {tradeHistory.length ? (
+                    tradeHistory.slice(0, 4).map((trade) => (
+                      <article key={trade.id} className="dashboard-trade-history-item">
+                        <div>
+                          <strong>{trade.asset}</strong>
+                          <span>{`${trade.leverage || "1x"} · ${trade.expiration || "24h"}`}</span>
+                        </div>
+                        <div className="dashboard-trade-history-metric">
+                          <strong>{formatCurrency(trade.amount)}</strong>
+                          <span className={trade.side === "buy" ? "profit" : "loss"}>
+                            {trade.side.toUpperCase()}
+                          </span>
+                        </div>
+                      </article>
+                    ))
+                  ) : (
+                    <p className="dashboard-wallet-empty-copy">No trades placed yet.</p>
+                  )}
+                </div>
+              </section>
+            </section>
+          </section>
+
+          <section className="dashboard-wallet-panel glass-panel">
+            <div className="dashboard-section-head dashboard-section-head-stack">
+              <h3>Connect Wallet</h3>
+              <p>Link external wallets to your dashboard for payout setup and wallet tracking.</p>
             </div>
-            <div className="dashboard-actions-grid">
-              {quickActions.map((action) => (
-                <NavLink
-                  key={action.label}
-                  to={action.to}
-                  className={`dashboard-action-button ${action.accent}`}
+
+            <form className="dashboard-wallet-form" onSubmit={handleWalletSubmit}>
+              <div className={`form-message ${walletFeedbackType}`}>{walletFeedback || " "}</div>
+              <div className="form-group">
+                <label className="form-label">Wallet Provider</label>
+                <select
+                  className="form-input"
+                  name="provider"
+                  value={walletForm.provider}
+                  onChange={handleWalletChange}
                 >
-                  <i className={`fa-solid ${action.icon}`} />
-                  <span>{action.label}</span>
-                </NavLink>
-              ))}
-            </div>
-          </section>
+                  {walletProviders.map((provider) => (
+                    <option key={provider} value={provider}>
+                      {provider}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Wallet Label</label>
+                <input
+                  className="form-input"
+                  name="walletLabel"
+                  value={walletForm.walletLabel}
+                  onChange={handleWalletChange}
+                  placeholder="Primary payout wallet"
+                />
+              </div>
+              <div className="form-group user-form-span">
+                <label className="form-label">Wallet Address / ID</label>
+                <input
+                  className="form-input"
+                  name="walletAddress"
+                  value={walletForm.walletAddress}
+                  onChange={handleWalletChange}
+                  placeholder="Paste your wallet address or wallet identifier"
+                  required
+                />
+              </div>
+              <div className="dashboard-wallet-action">
+                <button
+                  type="submit"
+                  className="btn-primary dashboard-wallet-submit"
+                  disabled={walletSubmitting}
+                >
+                  {walletSubmitting ? "Saving wallet..." : "Connect Wallet"}
+                </button>
+              </div>
+            </form>
 
-          <section className="dashboard-market-panel glass-panel">
-            <div className="dashboard-section-head compact">
-              <h3>Market Trends</h3>
-            </div>
-            <div className="dashboard-market-list">
-              {marketTrends.map((item) => (
-                <article key={item.symbol} className="dashboard-market-item">
-                  <div className="dashboard-market-left">
-                    <div className={`dashboard-market-badge ${item.accent}`}>
-                      <i className={`fa-solid ${item.icon}`} />
-                    </div>
-                    <div>
-                      <strong>{item.name}</strong>
-                      <span>{item.symbol}</span>
-                    </div>
-                  </div>
-                  <div className="dashboard-market-right">
-                    <strong>{item.price}</strong>
-                    <span className={item.direction === "up" ? "profit" : "loss"}>
-                      <i
-                        className={`fa-solid ${
-                          item.direction === "up" ? "fa-arrow-trend-up" : "fa-arrow-trend-down"
-                        }`}
-                      />{" "}
-                      {item.change}
-                    </span>
-                  </div>
-                </article>
-              ))}
-            </div>
-            <NavLink to="/invest-history" className="dashboard-market-cta">
-              Explore Portfolio
-            </NavLink>
-          </section>
-
-          <section className="dashboard-promo-card">
-            <div className="dashboard-promo-overlay" />
-            <div className="dashboard-promo-content">
-              <span>New Feature</span>
-              <h4>Kinetic Yield tier now active for premium account growth.</h4>
-              <p>
-                Use your current balances, referral performance, and treasury inflows to keep momentum compounding.
-              </p>
-              <NavLink to="/add-fund">Learn More</NavLink>
+            <div className="dashboard-wallet-inline">
+              {user?.linkedWallets?.length ? (
+                <div className="dashboard-wallet-list">
+                  {user.linkedWallets.map((wallet) => (
+                    <article className="dashboard-wallet-card" key={wallet.id}>
+                      <div className="dashboard-wallet-card-top">
+                        <div>
+                          <strong>{wallet.provider}</strong>
+                          <span>{wallet.walletLabel || "Linked wallet"}</span>
+                        </div>
+                        <span className={`wallet-status wallet-status-${wallet.status}`}>
+                          {wallet.status}
+                        </span>
+                      </div>
+                      <p>{wallet.walletAddress}</p>
+                      <div className="dashboard-wallet-card-actions">
+                        <small>
+                          Connected{" "}
+                          {wallet.connectedAt
+                            ? new Date(wallet.connectedAt).toLocaleDateString()
+                            : "recently"}
+                        </small>
+                        <button
+                          type="button"
+                          className="btn-outline wallet-remove-btn dashboard-wallet-remove"
+                          onClick={() => handleWalletRemove(wallet.id)}
+                          disabled={walletSubmitting}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="dashboard-wallet-empty dashboard-wallet-empty-inline">
+                  <i className="fa-solid fa-wallet" />
+                  <p>No wallets linked yet</p>
+                </div>
+              )}
             </div>
           </section>
-
-          <section className="dashboard-referral-modern glass-panel">
-            <div className="dashboard-section-head compact">
-              <h3>Referral Link</h3>
-            </div>
-            <div className="dashboard-referral-box modern">
-              <input readOnly value={referralLink} />
-              <button
-                type="button"
-                aria-label="Copy referral link"
-                onClick={handleCopyReferral}
-              >
-                <i className="fa-regular fa-copy" />
-              </button>
-            </div>
-          </section>
-        </aside>
-      </div>
+        </div>
     </UserDashboardLayout>
   );
 }

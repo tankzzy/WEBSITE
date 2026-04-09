@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
   },
   password: {
-    type: String,
+    type: String, 
     required: true,
   },
   role: {
@@ -62,6 +62,50 @@ const userSchema = new mongoose.Schema({
   lastReferralBonus: {
     type: Number,
     default: 0,
+  },
+  referralCode: {
+    type: String,
+    unique: true,
+    sparse: true,
+    uppercase: true,
+    trim: true,
+  },
+  referredBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null,
+  },
+  referralCount: {
+    type: Number,
+    default: 0,
+  },
+  linkedWallets: {
+    type: [
+      {
+        provider: {
+          type: String,
+          trim: true,
+        },
+        walletLabel: {
+          type: String,
+          trim: true,
+        },
+        walletAddress: {
+          type: String,
+          trim: true,
+        },
+        status: {
+          type: String,
+          enum: ["connected", "pending"],
+          default: "connected",
+        },
+        connectedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    default: [],
   },
   createdAt: {
     type: Date,

@@ -41,6 +41,21 @@ const transactionSchema = new mongoose.Schema({
     trim: true,
     default: '',
   },
+  purpose: {
+    type: String,
+    enum: ['general', 'investment-plan'],
+    default: 'general',
+  },
+  planId: {
+    type: String,
+    trim: true,
+    default: '',
+  },
+  planName: {
+    type: String,
+    trim: true,
+    default: '',
+  },
   createdAt: {
     type: Date,
     default: Date.now,
