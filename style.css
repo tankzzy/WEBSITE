@@ -41,36 +41,36 @@
 }
 
 body[data-theme="light"] {
-  --bg-main: #fffefb;
-  --bg-secondary: #fcf8f1;
-  --bg-card: rgba(255, 255, 251, 0.94);
-  --bg-elevated: rgba(255, 255, 253, 0.98);
-  --bg-strong: #fffefc;
+  --bg-main: #eef3f7;
+  --bg-secondary: #e6edf3;
+  --bg-card: rgba(245, 249, 252, 0.94);
+  --bg-elevated: rgba(247, 250, 253, 0.98);
+  --bg-strong: #f2f6fa;
 
-  --text-main: #241c12;
-  --text-muted: #6f6354;
-  --heading-color: #161008;
+  --text-main: #1f2937;
+  --text-muted: #66758a;
+  --heading-color: #111827;
 
   --gold: #b98a42;
   --gold-hover: #c99750;
   --gold-dim: rgba(185, 138, 66, 0.1);
-  --accent-soft: rgba(250, 244, 232, 0.96);
+  --accent-soft: rgba(231, 239, 247, 0.96);
 
-  --border-light: rgba(74, 58, 33, 0.08);
-  --shadow-strong: 0 24px 60px rgba(97, 77, 41, 0.07);
-  --shadow-soft: 0 10px 30px rgba(97, 77, 41, 0.05);
-  --nav-bg: rgba(255, 254, 250, 0.96);
+  --border-light: rgba(91, 114, 138, 0.12);
+  --shadow-strong: 0 24px 60px rgba(80, 102, 126, 0.08);
+  --shadow-soft: 0 10px 30px rgba(80, 102, 126, 0.06);
+  --nav-bg: rgba(238, 243, 247, 0.96);
   --hero-glow: radial-gradient(
     circle at 70% 50%,
-    rgba(245, 238, 224, 0.9) 0%,
+    rgba(220, 232, 243, 0.95) 0%,
     transparent 60%
   );
-  --gradient-panel: linear-gradient(145deg, rgba(255, 255, 252, 0.99), rgba(249, 244, 235, 0.98));
-  --gradient-panel-alt: linear-gradient(145deg, rgba(255, 255, 253, 0.99), rgba(246, 241, 232, 0.98));
+  --gradient-panel: linear-gradient(145deg, rgba(247, 250, 253, 0.99), rgba(231, 239, 247, 0.98));
+  --gradient-panel-alt: linear-gradient(145deg, rgba(244, 248, 252, 0.99), rgba(227, 236, 244, 0.98));
   color-scheme: light;
-  --field-bg: #f2ebe1;
-  --field-bg-focus: #fffdfa;
-  --field-border: rgba(74, 58, 33, 0.08);
+  --field-bg: #e3ebf2;
+  --field-bg-focus: #f6f9fc;
+  --field-border: rgba(91, 114, 138, 0.12);
   --field-border-focus: rgba(185, 138, 66, 0.24);
 }
 
@@ -94,8 +94,8 @@ body {
 
 body[data-theme="light"] {
   background-image:
-    radial-gradient(circle at top left, rgba(250, 244, 232, 0.7), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(244, 237, 224, 0.6), transparent 24%);
+    radial-gradient(circle at top left, rgba(229, 238, 247, 0.82), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(217, 229, 240, 0.72), transparent 24%);
 }
 
 .container {
@@ -5624,6 +5624,158 @@ body[data-theme="light"] .dashboard-mobile-nav-item {
 
 .home-exchange .legal-links a {
   color: #c1c6d7;
+}
+
+body[data-theme="light"] .home-exchange {
+  background:
+    radial-gradient(circle at top right, rgba(184, 210, 231, 0.34), transparent 24%),
+    radial-gradient(circle at 15% 35%, rgba(210, 222, 234, 0.5), transparent 20%),
+    #eef3f7;
+  color: #1f2937;
+}
+
+body[data-theme="light"] .home-exchange h1,
+body[data-theme="light"] .home-exchange h2,
+body[data-theme="light"] .home-exchange h3,
+body[data-theme="light"] .home-exchange h4,
+body[data-theme="light"] .home-exchange h5,
+body[data-theme="light"] .home-exchange h6,
+body[data-theme="light"] .home-exchange .brand,
+body[data-theme="light"] .home-exchange .hero-signal-card strong,
+body[data-theme="light"] .home-exchange .hero-showcase-title strong,
+body[data-theme="light"] .home-exchange .hero-floating-card strong,
+body[data-theme="light"] .home-exchange .hero-display-topline strong,
+body[data-theme="light"] .home-exchange .hero-display-stat strong,
+body[data-theme="light"] .home-exchange .hero-metals-item span,
+body[data-theme="light"] .home-exchange .chart-top .symbol,
+body[data-theme="light"] .home-exchange .chart-top .price,
+body[data-theme="light"] .home-exchange .metals-card strong,
+body[data-theme="light"] .home-exchange .tesla-market-head strong,
+body[data-theme="light"] .home-exchange .tesla-market-stats strong,
+body[data-theme="light"] .home-exchange .fb-text h4,
+body[data-theme="light"] .home-exchange .review-text,
+body[data-theme="light"] .home-exchange .footer-links h4,
+body[data-theme="light"] .home-exchange .reviewer h5,
+body[data-theme="light"] .home-exchange .award-item h6 {
+  color: #111827;
+}
+
+body[data-theme="light"] .home-exchange p,
+body[data-theme="light"] .home-exchange .subtitle,
+body[data-theme="light"] .home-exchange .reviewer span,
+body[data-theme="light"] .home-exchange .award-item span,
+body[data-theme="light"] .home-exchange .footer-links a,
+body[data-theme="light"] .home-exchange .footer-bottom,
+body[data-theme="light"] .home-exchange .mockup-title,
+body[data-theme="light"] .home-exchange .ticker-item,
+body[data-theme="light"] .home-exchange .legal-links a,
+body[data-theme="light"] .home-exchange .hero-kicker-note,
+body[data-theme="light"] .home-exchange .hero-signal-card span,
+body[data-theme="light"] .home-exchange .hero-floating-label,
+body[data-theme="light"] .home-exchange .hero-display-stat span,
+body[data-theme="light"] .home-exchange .hero-display-symbol,
+body[data-theme="light"] .home-exchange .tesla-market-head span,
+body[data-theme="light"] .home-exchange .tesla-market-stats span {
+  color: #66758a;
+}
+
+body[data-theme="light"] .home-exchange .hero-showcase-card,
+body[data-theme="light"] .home-exchange .hero-floating-card,
+body[data-theme="light"] .home-exchange .platform-mockup,
+body[data-theme="light"] .home-exchange .product-card,
+body[data-theme="light"] .home-exchange .feature-box,
+body[data-theme="light"] .home-exchange .review-card,
+body[data-theme="light"] .home-exchange .metals-spotlight-copy,
+body[data-theme="light"] .home-exchange .metals-card,
+body[data-theme="light"] .home-exchange .tesla-market-copy,
+body[data-theme="light"] .home-exchange .tesla-market-card,
+body[data-theme="light"] .home-exchange .plan-card,
+body[data-theme="light"] .home-exchange .plans-cta-card {
+  border-color: rgba(91, 114, 138, 0.12);
+  box-shadow: 0 24px 60px rgba(80, 102, 126, 0.08);
+}
+
+body[data-theme="light"] .home-exchange .hero-showcase-card,
+body[data-theme="light"] .home-exchange .hero-floating-card,
+body[data-theme="light"] .home-exchange .platform-mockup,
+body[data-theme="light"] .home-exchange .product-card,
+body[data-theme="light"] .home-exchange .feature-box,
+body[data-theme="light"] .home-exchange .review-card {
+  background: rgba(240, 245, 249, 0.82);
+}
+
+body[data-theme="light"] .home-exchange .hero-display-panel,
+body[data-theme="light"] .home-exchange .hero-metals-item,
+body[data-theme="light"] .home-exchange .chart-area,
+body[data-theme="light"] .home-exchange .tesla-market-chart,
+body[data-theme="light"] .home-exchange .tesla-market-stats article,
+body[data-theme="light"] .home-exchange .hero-display-stat,
+body[data-theme="light"] .home-exchange .hero-signal-card,
+body[data-theme="light"] .home-exchange .mockup-header {
+  background:
+    radial-gradient(circle at top right, rgba(184, 210, 231, 0.16), transparent 24%),
+    rgba(232, 239, 245, 0.92);
+  border-color: rgba(91, 114, 138, 0.12);
+}
+
+body[data-theme="light"] .home-exchange .market-ticker,
+body[data-theme="light"] .home-exchange .footer {
+  background: rgba(228, 236, 243, 0.96);
+  border-color: rgba(91, 114, 138, 0.12);
+}
+
+body[data-theme="light"] .home-exchange .final-cta {
+  background:
+    radial-gradient(circle at center, rgba(184, 210, 231, 0.26) 0%, rgba(238, 243, 247, 0) 55%);
+  border-top: 1px solid rgba(91, 114, 138, 0.12);
+}
+
+body[data-theme="light"] .home-exchange .benefits-list li,
+body[data-theme="light"] .home-exchange .awards-strip,
+body[data-theme="light"] .home-exchange .footer-grid,
+body[data-theme="light"] .home-exchange .footer-bottom,
+body[data-theme="light"] .home-exchange .plan-limits {
+  border-color: rgba(91, 114, 138, 0.12);
+}
+
+body[data-theme="light"] .home-exchange .ticker-item .sym {
+  color: #111827;
+}
+
+body[data-theme="light"] .home-exchange .plan-card {
+  background:
+    radial-gradient(circle at top right, rgba(184, 210, 231, 0.2), transparent 30%),
+    linear-gradient(180deg, rgba(243, 247, 250, 0.96), rgba(227, 236, 243, 0.98)),
+    #eef3f7;
+  border-color: rgba(91, 114, 138, 0.12);
+  box-shadow: 0 16px 36px rgba(80, 102, 126, 0.08);
+}
+
+body[data-theme="light"] .home-exchange .plan-card-head {
+  background: linear-gradient(135deg, rgba(184, 210, 231, 0.48), rgba(214, 225, 236, 0.7));
+  border-bottom-color: rgba(91, 114, 138, 0.12);
+}
+
+body[data-theme="light"] .home-exchange .plan-card-head h3,
+body[data-theme="light"] .home-exchange .plan-limits p {
+  color: #111827;
+}
+
+body[data-theme="light"] .home-exchange .plan-badge {
+  background: rgba(184, 210, 231, 0.5);
+  border-color: rgba(91, 114, 138, 0.14);
+  color: #3f5f7a;
+}
+
+body[data-theme="light"] .home-exchange .plan-roi span,
+body[data-theme="light"] .home-exchange .plan-features li,
+body[data-theme="light"] .home-exchange .plan-limits span,
+body[data-theme="light"] .home-exchange .plans-cta-card p {
+  color: #66758a;
+}
+
+body[data-theme="light"] .home-exchange .plan-limits em {
+  color: #3f5f7a;
 }
 
 @media (max-width: 992px) {
