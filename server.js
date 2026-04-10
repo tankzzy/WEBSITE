@@ -1061,7 +1061,7 @@ app.delete('/api/admin/users/:id', ensureDatabaseConnection, requireAuth, requir
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, 'dist')));
 
-  app.get('/*', (req, res) => {
+  app.get('/{*path}', (req, res) => {
     if (req.path.startsWith('/api')) {
       return res.status(404).json({ message: 'API route not found' });
     }
