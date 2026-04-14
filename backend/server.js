@@ -16,6 +16,24 @@ const PORT = process.env.PORT || 5000;
 const AUTH_SECRET = process.env.AUTH_SECRET || 'tradilink-local-secret';
 let isDatabaseReady = false;
 
+function parseAllowedOrigins(value) {
+  return String(value || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
+const allowedOrigins = parseAllowedOrigins(process.env.CORS_ORIGINS);
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error('Not allowed by CORS'));
+  },
+};
+
 const editableUserFields = [
   'fullName',
   'email',
@@ -95,7 +113,7 @@ const MARKET_BASELINES = {
   baseVolume: 180,
 };
 
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
