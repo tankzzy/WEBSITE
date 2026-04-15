@@ -6058,6 +6058,99 @@ body[data-theme="light"] .home-exchange .plan-limits em {
   }
 }
 
+@media (max-width: 640px) {
+  .signup-shell.auth-shell {
+    padding: 1rem 0.9rem;
+  }
+
+  .signup-shell .auth-shell-inner {
+    min-height: calc(100dvh - 2rem);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .signup-shell .auth-back-link {
+    margin-bottom: 0.8rem;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.82rem;
+  }
+
+  .signup-shell .signup-layout {
+    gap: 1rem;
+  }
+
+  .signup-shell .signup-showcase {
+    padding: 1.5rem 1.2rem 2.2rem;
+    min-height: 220px;
+    border-radius: 20px;
+  }
+
+  .signup-shell .signup-kicker {
+    margin-bottom: 0.8rem;
+  }
+
+  .signup-shell .hero-kicker-note,
+  .signup-shell .signup-lead,
+  .signup-shell .signup-stats,
+  .signup-shell .signup-benefits {
+    display: none;
+  }
+
+  .signup-shell .auth-eyebrow,
+  .signup-shell .hero-kicker-pill,
+  .signup-shell .auth-badge {
+    font-size: 0.68rem;
+    padding: 0.28rem 0.65rem;
+  }
+
+  .signup-shell .signup-showcase h1 {
+    max-width: 10ch;
+    font-size: clamp(1.9rem, 8vw, 2.5rem);
+    margin-bottom: 0;
+  }
+
+  .signup-shell .auth-card {
+    padding: 1.1rem;
+    border-radius: 20px;
+  }
+
+  .signup-shell .signup-header {
+    margin-bottom: 0.9rem;
+  }
+
+  .signup-shell .signup-header h2 {
+    font-size: 1.55rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .signup-shell .signup-header p,
+  .signup-shell .auth-footer,
+  .signup-shell .form-message,
+  .signup-shell .form-label,
+  .signup-shell .form-input,
+  .signup-shell .auth-btn {
+    font-size: 0.88rem;
+  }
+
+  .signup-shell .auth-form {
+    gap: 0.75rem;
+  }
+
+  .signup-shell .form-group {
+    gap: 0.3rem;
+  }
+
+  .signup-shell .form-input,
+  .signup-shell .auth-btn {
+    padding: 0.82rem 0.95rem;
+    border-radius: 14px;
+  }
+
+  .signup-shell .auth-footer {
+    margin-top: 0.9rem;
+  }
+}
+
 .login-shell {
   background:
     radial-gradient(circle at top right, rgba(0, 218, 243, 0.08), transparent 24%),
@@ -6214,6 +6307,85 @@ body[data-theme="light"] .home-exchange .plan-limits em {
 @media (max-width: 992px) {
 .login-shell .login-layout {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .login-shell {
+    min-height: 100dvh;
+  }
+
+  .login-shell.auth-shell {
+    padding: 1rem 0.9rem;
+    overflow: hidden;
+  }
+
+  .login-shell .auth-shell-inner {
+    min-height: calc(100dvh - 2rem);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .login-shell .auth-back-link {
+    margin-bottom: 0.8rem;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.82rem;
+  }
+
+  .login-shell .login-layout {
+    flex: 1;
+    align-items: center;
+  }
+
+  .login-shell .auth-card {
+    padding: 1.1rem;
+    border-radius: 20px;
+  }
+
+  .login-shell .auth-header {
+    margin-bottom: 0.9rem;
+  }
+
+  .login-shell .auth-badge,
+  .login-shell .auth-eyebrow {
+    font-size: 0.68rem;
+    padding: 0.28rem 0.65rem;
+  }
+
+  .login-shell .login-header h2 {
+    font-size: 1.55rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .login-shell .login-header p,
+  .login-shell .auth-footer,
+  .login-shell .form-message,
+  .login-shell .form-label,
+  .login-shell .form-input,
+  .login-shell .auth-btn {
+    font-size: 0.88rem;
+  }
+
+  .login-shell .auth-form {
+    gap: 0.75rem;
+  }
+
+  .login-shell .form-group {
+    gap: 0.3rem;
+  }
+
+  .login-shell .form-input,
+  .login-shell .auth-btn {
+    padding: 0.82rem 0.95rem;
+    border-radius: 14px;
+  }
+
+  .login-shell .auth-footer {
+    margin-top: 0.9rem;
+  }
+
+  .login-shell .login-showcase {
+    display: none;
   }
 }
 

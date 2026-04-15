@@ -2,12 +2,6 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiUrl, parseApiResponse } from "../config/api";
 
-const signupBenefits = [
-  "Secure onboarding with encrypted credentials",
-  "Access to forex, stocks, and futures markets",
-  "Fast deposits, withdrawals, and account support",
-];
-
 function Signup() {
   const navigate = useNavigate();
   const [formState, setFormState] = useState({
@@ -90,30 +84,6 @@ function Signup() {
               Join a platform built for speed, flexibility, and better market
               access from a single dashboard.
             </p>
-
-            <div className="signup-stats">
-              <div className="signup-stat-card">
-                <strong>23K+</strong>
-                <span>active traders</span>
-              </div>
-              <div className="signup-stat-card">
-                <strong>0.01s</strong>
-                <span>avg. execution</span>
-              </div>
-              <div className="signup-stat-card">
-                <strong>40+</strong>
-                <span>global exchanges</span>
-              </div>
-            </div>
-
-            <ul className="signup-benefits">
-              {signupBenefits.map((benefit) => (
-                <li key={benefit}>
-                  <i className="fa-solid fa-circle-check" />
-                  <span>{benefit}</span>
-                </li>
-              ))}
-            </ul>
           </div>
 
           <div className="auth-card signup-card">
