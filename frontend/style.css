@@ -4446,9 +4446,10 @@ body[data-theme="light"] .dashboard-mobile-nav-item {
 
 .dashboard-mobile-nav {
   position: fixed;
-  right: 1rem;
-  bottom: 1rem;
-  left: 1rem;
+  left: 50%;
+  right: auto;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
+  width: min(calc(100vw - 2rem), 420px);
   z-index: 30;
   display: none;
   justify-content: space-around;
@@ -4458,6 +4459,7 @@ body[data-theme="light"] .dashboard-mobile-nav-item {
   border-radius: 20px;
   background: rgba(29, 32, 35, 0.82);
   backdrop-filter: blur(18px);
+  transform: translateX(-50%);
 }
 
 .dashboard-mobile-nav-item {
@@ -6080,33 +6082,7 @@ body[data-theme="light"] .home-exchange .plan-limits em {
   }
 
   .signup-shell .signup-showcase {
-    padding: 1.5rem 1.2rem 2.2rem;
-    min-height: 220px;
-    border-radius: 20px;
-  }
-
-  .signup-shell .signup-kicker {
-    margin-bottom: 0.8rem;
-  }
-
-  .signup-shell .hero-kicker-note,
-  .signup-shell .signup-lead,
-  .signup-shell .signup-stats,
-  .signup-shell .signup-benefits {
     display: none;
-  }
-
-  .signup-shell .auth-eyebrow,
-  .signup-shell .hero-kicker-pill,
-  .signup-shell .auth-badge {
-    font-size: 0.68rem;
-    padding: 0.28rem 0.65rem;
-  }
-
-  .signup-shell .signup-showcase h1 {
-    max-width: 10ch;
-    font-size: clamp(1.9rem, 8vw, 2.5rem);
-    margin-bottom: 0;
   }
 
   .signup-shell .auth-card {
@@ -6679,14 +6655,32 @@ body {
 
 @media (max-width: 640px) {
   .site-translator {
-    right: 0.75rem;
-    bottom: 0.75rem;
-    left: 0.75rem;
-    justify-content: space-between;
+    left: 50%;
+    right: auto;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
+    width: 18vw;
+    min-width: 110px;
+    max-width: 140px;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.55rem 0.65rem;
+    transform: translateX(-50%);
+  }
+
+  .site-translator-label span {
+    display: none;
+  }
+
+  .site-translator-label {
+    gap: 0;
+    font-size: 0.9rem;
   }
 
   .site-translator-select {
-    min-width: 120px;
+    min-width: 0;
+    flex: 1;
+    padding: 0.45rem 0.55rem;
+    font-size: 0.74rem;
   }
 }
 
@@ -6982,9 +6976,10 @@ body {
   }
 
   .dashboard-mobile-nav {
-    right: 0.75rem;
-    bottom: 0.75rem;
-    left: 0.75rem;
+    left: 50%;
+    right: auto;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
+    width: min(calc(100vw - 1.5rem), 360px);
     padding: 0.7rem;
   }
 

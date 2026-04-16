@@ -66,7 +66,7 @@ function Login() {
 
         <section className="login-layout">
           <div className="auth-card login-card">
-            <div className="auth-header login-header">
+            <div className="a uth-header login-header">
               <span className="auth-badge">Member Access</span>
               <h2>Log In</h2>
               <p>Enter your details to reopen your trading workspace.</p>
