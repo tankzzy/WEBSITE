@@ -22,37 +22,40 @@ function Navbar({ theme, onToggleTheme }) {
         <button
           className="menu-toggle"
           onClick={() => setMenuOpen((open) => !open)}
+          type="button"
+          aria-expanded={menuOpen}
           aria-label="Toggle navigation"
         >
-          <i className="fa-solid fa-bars" />
+          <i className={`fa-solid ${menuOpen ? "fa-xmark" : "fa-bars"}`} />
         </button>
 
         <ul
-          className="nav-links"
-          style={{ display: menuOpen ? "flex" : undefined }}
-          onClick={() => setMenuOpen(false)}
+          className={`nav-links ${menuOpen ? "open" : ""}`}
         >
           <li>
-            <a href="#markets">Markets</a>
+            <a href="#markets" onClick={() => setMenuOpen(false)}>
+              Markets
+            </a>
           </li>
           <li>
-            <a href="#products">Products</a>
+            <a href="#products" onClick={() => setMenuOpen(false)}>
+              Products
+            </a>
           </li>
           <li>
-            <a href="#benefits">Why Us</a>
+            <a href="#benefits" onClick={() => setMenuOpen(false)}>
+              Why Us
+            </a>
           </li>
           <li>
-            <a href="#academy">Academy</a>
+            <a href="#academy" onClick={() => setMenuOpen(false)}>
+              Academy
+            </a>
           </li>
         </ul>
 
         <div
-          className="nav-actions"
-          style={
-            menuOpen
-              ? { display: "flex", flexDirection: "column", gap: "1rem" }
-              : undefined
-          }
+          className={`nav-actions ${menuOpen ? "open" : ""}`}
         >
           <button
             type="button"

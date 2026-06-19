@@ -6745,17 +6745,54 @@ body {
 
   .menu-toggle {
     flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  .nav-links[style],
-  .nav-actions[style] {
+  .nav-links,
+  .nav-actions {
+    display: none;
     width: 100%;
     overflow: hidden;
   }
 
-  .nav-links[style] a {
+  .nav-links.open,
+  .nav-actions.open {
+    display: flex;
+  }
+
+  .nav-links.open {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.9rem;
+    border-radius: 18px;
+  }
+
+  .nav-actions.open {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0.9rem;
+    border-radius: 18px;
+    align-items: stretch;
+  }
+
+  .nav-links.open a {
     display: block;
     width: 100%;
+  }
+
+  .nav-actions.open > * {
+    width: 100%;
+  }
+
+  .nav-actions.open .btn-text,
+  .nav-actions.open .btn-primary,
+  .nav-actions.open .theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
   }
 
   .hero-content p {
@@ -6853,19 +6890,14 @@ body {
     height: 2.5rem;
   }
 
-  .nav-links[style],
-  .nav-actions[style] {
-    padding: 0.9rem;
-    border-radius: 18px;
-  }
-
-  .nav-actions[style] {
-    gap: 0.75rem !important;
-  }
-
   .theme-toggle {
     width: 100%;
     justify-content: center;
+  }
+
+  .navbar .btn-text,
+  .navbar .btn-primary {
+    padding: 0.9rem 1rem;
   }
 
   .hero {
