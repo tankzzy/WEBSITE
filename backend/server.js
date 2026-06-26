@@ -24,9 +24,19 @@ function parseAllowedOrigins(value) {
 }
 
 const allowedOrigins = parseAllowedOrigins(process.env.CORS_ORIGINS);
+const LOCALHOST_ORIGIN_RE = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/i;
 const corsOptions = {
   origin(origin, callback) {
-    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (
+      allowedOrigins.length === 0 ||
+      allowedOrigins.includes('*') ||
+      allowedOrigins.includes(origin) ||
+      LOCALHOST_ORIGIN_RE.test(origin)
+    ) {
       return callback(null, true);
     }
 
@@ -113,7 +123,12 @@ const MARKET_BASELINES = {
   baseVolume: 180,
 };
 
-app.use(cors(corsOptions));
+// Use configured CORS in production; allow all origins during development
+if (process.env.NODE_ENV === 'production') {
+  app.use(cors(corsOptions));
+} else {
+  app.use(cors());
+}
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -124,9 +139,10 @@ if (!process.env.MONGO_URI) {
     .connect(process.env.MONGO_URI, {
       serverSelectionTimeoutMS: 5000,
     })
-    .then(() => {
+    .then(async () => {
       isDatabaseReady = true;
       console.log('Successfully connected to MongoDB Cluster');
+      await ensureAdminUser();
     })
     .catch((err) => {
       isDatabaseReady = false;
@@ -202,6 +218,14 @@ function createAuthToken(user) {
   });
 }
 
+function hashResetToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+function createPasswordResetToken() {
+  return crypto.randomBytes(24).toString('hex');
+}
+
 function createReferralCodeSeed(fullName = '', email = '') {
   const baseName = fullName.replace(/[^a-z0-9]/gi, '').toUpperCase().slice(0, 4);
   const baseEmail = email.split('@')[0].replace(/[^a-z0-9]/gi, '').toUpperCase().slice(0, 4);
@@ -218,6 +242,55 @@ async function generateUniqueReferralCode(fullName, email) {
   }
 
   return referralCode;
+}
+
+async function ensureAdminUser() {
+  const adminEmail = String(process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+  const adminPassword = String(process.env.ADMIN_PASSWORD || '').trim();
+  const adminFullName = String(process.env.ADMIN_FULL_NAME || 'Administrator').trim();
+
+  if (!adminEmail || !adminPassword) {
+    console.log(
+      'Admin seeding skipped: set ADMIN_EMAIL and ADMIN_PASSWORD to create a default admin account.',
+    );
+    return;
+  }
+
+  try {
+    const adminExists = await User.exists({ role: 'admin' });
+
+    if (adminExists) {
+      console.log('Admin account already exists; skipping admin seeding.');
+      return;
+    }
+
+    const existingUser = await User.findOne({ email: adminEmail });
+
+    if (existingUser) {
+      existingUser.role = 'admin';
+      existingUser.status = 'active';
+      existingUser.password = await bcrypt.hash(adminPassword, await bcrypt.genSalt(10));
+      await ensureUserReferralCode(existingUser);
+      await existingUser.save();
+      console.log(`Upgraded existing user to admin: ${adminEmail}`);
+      return;
+    }
+
+    const hashedPassword = await bcrypt.hash(adminPassword, await bcrypt.genSalt(10));
+    const newAdmin = new User({
+      fullName: adminFullName,
+      email: adminEmail,
+      password: hashedPassword,
+      role: 'admin',
+      status: 'active',
+      referralCode: await generateUniqueReferralCode(adminFullName, adminEmail),
+    });
+
+    await newAdmin.save();
+    console.log(`Seeded administrator account: ${adminEmail}`);
+  } catch (error) {
+    console.error('Admin account seed error:', error);
+  }
 }
 
 async function ensureUserReferralCode(user) {
@@ -380,6 +453,13 @@ function serializeTransaction(transaction) {
     planId: transaction.planId || '',
     planName: transaction.planName || '',
     createdAt: transaction.createdAt,
+    user: transaction.user
+      ? {
+          id: transaction.user._id || transaction.user.id,
+          fullName: transaction.user.fullName || 'Unknown',
+          email: transaction.user.email || 'Unknown',
+        }
+      : null,
   };
 }
 
@@ -561,6 +641,76 @@ app.post('/api/login', ensureDatabaseConnection, async (req, res) => {
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Server error during login' });
+  }
+});
+
+app.post('/api/forgot-password', ensureDatabaseConnection, async (req, res) => {
+  try {
+    const { email } = req.body;
+    const normalizedEmail = String(email || '').toLowerCase().trim();
+
+    if (!normalizedEmail) {
+      return res.status(400).json({ message: 'Email address is required' });
+    }
+
+    const user = await User.findOne({ email: normalizedEmail });
+    const genericMessage =
+      'If an account exists for that email, a password reset code has been created.';
+
+    if (!user) {
+      return res.status(200).json({ message: genericMessage });
+    }
+
+    const resetToken = createPasswordResetToken();
+    user.passwordResetTokenHash = hashResetToken(resetToken);
+    user.passwordResetExpiresAt = new Date(Date.now() + 1000 * 60 * 15);
+    await user.save();
+
+    res.status(200).json({
+      message: genericMessage,
+      resetToken,
+      expiresInMinutes: 15,
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ message: 'Server error while creating password reset code' });
+  }
+});
+
+app.post('/api/reset-password', ensureDatabaseConnection, async (req, res) => {
+  try {
+    const { email, token, password } = req.body;
+    const normalizedEmail = String(email || '').toLowerCase().trim();
+    const resetToken = String(token || '').trim();
+    const nextPassword = String(password || '');
+
+    if (!normalizedEmail || !resetToken || !nextPassword) {
+      return res.status(400).json({ message: 'Email, reset code, and new password are required' });
+    }
+
+    if (nextPassword.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    }
+
+    const user = await User.findOne({
+      email: normalizedEmail,
+      passwordResetTokenHash: hashResetToken(resetToken),
+      passwordResetExpiresAt: { $gt: new Date() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Reset code is invalid or expired' });
+    }
+
+    user.password = await bcrypt.hash(nextPassword, await bcrypt.genSalt(10));
+    user.passwordResetTokenHash = '';
+    user.passwordResetExpiresAt = null;
+    await user.save();
+
+    res.status(200).json({ message: 'Password reset successfully. You can now log in.' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ message: 'Server error while resetting password' });
   }
 });
 
@@ -930,16 +1080,35 @@ app.get('/api/withdrawals', ensureDatabaseConnection, requireAuth, async (req, r
 app.post('/api/withdrawals', ensureDatabaseConnection, requireAuth, async (req, res) => {
   try {
     const { amount, method, details } = req.body;
+    const withdrawalAmount = Number(amount);
 
-    if (!amount || !method) {
+    if (!withdrawalAmount || !method || Number.isNaN(withdrawalAmount)) {
       return res.status(400).json({ message: 'Amount and method are required' });
     }
+
+    if (withdrawalAmount <= 0) {
+      return res.status(400).json({ message: 'Withdrawal amount must be greater than zero' });
+    }
+
+    const user = await User.findById(req.authUser._id).select('mainBalance');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.mainBalance < withdrawalAmount) {
+      return res.status(400).json({ message: 'Insufficient balance for withdrawal' });
+    }
+
+    await User.findByIdAndUpdate(req.authUser._id, {
+      $inc: { mainBalance: -withdrawalAmount },
+    });
 
     const transaction = await Transaction.create({
       user: req.authUser._id,
       type: 'withdrawal',
       status: 'pending',
-      amount: Number(amount),
+      amount: withdrawalAmount,
       method,
       direction: 'debit',
       details: details || '',
@@ -1073,6 +1242,195 @@ app.delete('/api/admin/users/:id', ensureDatabaseConnection, requireAuth, requir
   } catch (error) {
     console.error('Admin delete user error:', error);
     res.status(500).json({ message: 'Server error while deleting user' });
+  }
+});
+
+app.get('/api/admin/withdrawals', ensureDatabaseConnection, requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const withdrawals = await Transaction.find({ type: 'withdrawal' })
+      .sort({ createdAt: -1 })
+      .populate('user', 'fullName email');
+
+    res.status(200).json({ withdrawals: withdrawals.map(serializeTransaction) });
+  } catch (error) {
+    console.error('Admin list withdrawals error:', error);
+    res.status(500).json({ message: 'Server error while loading withdrawals' });
+  }
+});
+
+app.get('/api/admin/transactions', ensureDatabaseConnection, requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const transactions = await Transaction.find({})
+      .sort({ createdAt: -1 })
+      .populate('user', 'fullName email');
+
+    res.status(200).json({ transactions: transactions.map(serializeTransaction) });
+  } catch (error) {
+    console.error('Admin list transactions error:', error);
+    res.status(500).json({ message: 'Server error while loading transactions' });
+  }
+});
+
+async function approveAdminTransaction(transaction) {
+  if (transaction.status !== 'pending') {
+    throw new Error('Only pending transactions can be approved');
+  }
+
+  transaction.status = 'approved';
+  await transaction.save();
+
+  if (transaction.type === 'withdrawal') {
+    await User.findByIdAndUpdate(transaction.user._id || transaction.user, {
+      $inc: { totalPayout: transaction.amount },
+    });
+  }
+
+  if (transaction.type === 'deposit') {
+    const userUpdate =
+      transaction.purpose === 'investment-plan'
+        ? { $inc: { totalDeposit: transaction.amount } }
+        : { $inc: { mainBalance: transaction.amount, totalDeposit: transaction.amount } };
+
+    await User.findByIdAndUpdate(transaction.user._id || transaction.user, userUpdate);
+
+    if (transaction.purpose === 'investment-plan' && transaction.reference) {
+      await Investment.findOneAndUpdate(
+        {
+          user: transaction.user._id || transaction.user,
+          fundingReference: transaction.reference,
+          status: 'pending',
+        },
+        { status: 'active' },
+      );
+    }
+  }
+}
+
+async function denyAdminTransaction(transaction) {
+  if (transaction.status !== 'pending') {
+    throw new Error('Only pending transactions can be denied');
+  }
+
+  transaction.status = 'rejected';
+  await transaction.save();
+
+  if (transaction.type === 'withdrawal') {
+    await User.findByIdAndUpdate(transaction.user._id || transaction.user, {
+      $inc: { mainBalance: transaction.amount },
+    });
+  }
+
+  if (transaction.type === 'deposit' && transaction.purpose === 'investment-plan' && transaction.reference) {
+    await Investment.findOneAndUpdate(
+      {
+        user: transaction.user._id || transaction.user,
+        fundingReference: transaction.reference,
+        status: 'pending',
+      },
+      { status: 'cancelled' },
+    );
+  }
+}
+
+app.patch('/api/admin/transactions/:id/approve', ensureDatabaseConnection, requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const transaction = await Transaction.findById(req.params.id).populate('user', 'fullName email');
+
+    if (!transaction) {
+      return res.status(404).json({ message: 'Transaction request not found' });
+    }
+
+    await approveAdminTransaction(transaction);
+
+    res.status(200).json({
+      message: `${transaction.type} request approved successfully`,
+      transaction: serializeTransaction(transaction),
+    });
+  } catch (error) {
+    const isValidationError = error.message === 'Only pending transactions can be approved';
+    console.error('Admin approve transaction error:', error);
+    res.status(isValidationError ? 400 : 500).json({
+      message: isValidationError ? error.message : 'Server error while approving transaction request',
+    });
+  }
+});
+
+app.patch('/api/admin/transactions/:id/deny', ensureDatabaseConnection, requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const transaction = await Transaction.findById(req.params.id).populate('user', 'fullName email');
+
+    if (!transaction) {
+      return res.status(404).json({ message: 'Transaction request not found' });
+    }
+
+    await denyAdminTransaction(transaction);
+
+    res.status(200).json({
+      message: `${transaction.type} request denied successfully`,
+      transaction: serializeTransaction(transaction),
+    });
+  } catch (error) {
+    const isValidationError = error.message === 'Only pending transactions can be denied';
+    console.error('Admin deny transaction error:', error);
+    res.status(isValidationError ? 400 : 500).json({
+      message: isValidationError ? error.message : 'Server error while denying transaction request',
+    });
+  }
+});
+
+app.patch('/api/admin/withdrawals/:id/approve', ensureDatabaseConnection, requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const transaction = await Transaction.findById(req.params.id).populate('user', 'fullName email');
+
+    if (!transaction) {
+      return res.status(404).json({ message: 'Withdrawal request not found' });
+    }
+
+    if (transaction.type !== 'withdrawal') {
+      return res.status(400).json({ message: 'Only withdrawal requests can be approved' });
+    }
+
+    await approveAdminTransaction(transaction);
+
+    res.status(200).json({
+      message: 'Withdrawal request approved successfully',
+      transaction: serializeTransaction(transaction),
+    });
+  } catch (error) {
+    if (error.message === 'Only pending transactions can be approved') {
+      return res.status(400).json({ message: 'Withdrawal request must be pending before approval' });
+    }
+
+    console.error('Admin approve withdrawal error:', error);
+    res.status(500).json({ message: 'Server error while approving withdrawal request' });
+  }
+});
+
+app.patch('/api/admin/withdrawals/:id/deny', ensureDatabaseConnection, requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const transaction = await Transaction.findById(req.params.id).populate('user', 'fullName email');
+
+    if (!transaction) {
+      return res.status(404).json({ message: 'Withdrawal request not found' });
+    }
+
+    if (transaction.type !== 'withdrawal') {
+      return res.status(400).json({ message: 'Only withdrawal requests can be denied' });
+    }
+
+    await denyAdminTransaction(transaction);
+
+    res.status(200).json({
+      message: 'Withdrawal request denied and funds returned',
+      transaction: serializeTransaction(transaction),
+    });
+  } catch (error) {
+    if (error.message === 'Only pending transactions can be denied') {
+      return res.status(400).json({ message: 'Only pending withdrawals can be denied' });
+    }
+
+    console.error('Admin deny withdrawal error:', error);
+    res.status(500).json({ message: 'Server error while denying withdrawal request' });
   }
 });
 
