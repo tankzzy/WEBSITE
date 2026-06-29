@@ -66,7 +66,7 @@ function UserDashboardLayout({ title, children }) {
         <header className="dashboard-header">
           <div className="dashboard-header-left">
             <span className="dashboard-mobile-brand">
-              TG <small>Prime</small>
+              LG <small>Prime</small>
             </span>
             <nav className="dashboard-topnav">
               <NavLink to="/dashboard" className="dashboard-header-link">
@@ -127,7 +127,7 @@ function UserDashboardLayout({ title, children }) {
           <aside className="dashboard-sidebar">
             <div className="dashboard-sidebar-brand">
               <h1>
-                TG <span>Prime</span>
+                LG <span>Prime</span>
               </h1>
             </div>
             <div className="dashboard-sidebar-list">

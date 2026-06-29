@@ -205,7 +205,7 @@ function createAuthToken(user) {
 function createReferralCodeSeed(fullName = '', email = '') {
   const baseName = fullName.replace(/[^a-z0-9]/gi, '').toUpperCase().slice(0, 4);
   const baseEmail = email.split('@')[0].replace(/[^a-z0-9]/gi, '').toUpperCase().slice(0, 4);
-  const base = (baseName || baseEmail || 'TG').padEnd(4, 'X');
+  const base = (baseName || baseEmail || 'LG').padEnd(4, 'X');
   const random = crypto.randomBytes(3).toString('hex').toUpperCase();
   return `${base}${random}`;
 }

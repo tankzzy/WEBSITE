@@ -16,7 +16,7 @@ function Navbar({ theme, onToggleTheme }) {
       <div className="nav-container">
         <Link to="/" className="brand" onClick={() => setMenuOpen(false)}>
           <i className="fa-solid fa-chart-line logo-icon" />
-          TG <span>Prime</span>
+          LG <span>Prime</span>
         </Link>
 
         <button

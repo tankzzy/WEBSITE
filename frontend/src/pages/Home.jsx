@@ -242,7 +242,7 @@ function Home() {
             <div className="hero-showcase-card">
               <div className="hero-showcase-head">
                 <div className="hero-showcase-title">
-                  <span className="hero-floating-label">TG Prime Terminal</span>
+                  <span className="hero-floating-label">LG Prime Terminal</span>
                   <strong>Cross-market intelligence</strong>
                 </div>
                 <div className="hero-showcase-chip">Live</div>
@@ -617,7 +617,7 @@ function Home() {
             <div className="footer-brand">
               <Link to="/" className="brand">
                 <i className="fa-solid fa-chart-line logo-icon" />
-                TGtradringservices
+                LGtradringservices
               </Link>
               <p className="disclaimer">
                 Trading Forex and CFDs carries a high level of risk and may not
@@ -689,7 +689,7 @@ function Home() {
           </div>
 
           <div className="footer-bottom">
-            <p>&copy; 2026 TGtradringservices. All Rights Reserved.</p>
+            <p>&copy; 2026 LGtradringservices. All Rights Reserved.</p>
             <ul className="legal-links">
               <li>
                 <a href="#">Risk disclosure</a>
