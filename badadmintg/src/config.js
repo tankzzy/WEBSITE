@@ -1,5 +1,5 @@
 const configuredApiUrl = import.meta.env.VITE_API_URL;
-const defaultApiUrl = configuredApiUrl || 'http://localhost:5000';
+const defaultApiUrl = configuredApiUrl || 'https://website-1-9ene.onrender.com';
 
 export const API_URL = defaultApiUrl;
 

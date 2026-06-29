@@ -2820,3 +2820,417 @@ label {
     grid-column: span 12;
   }
 }
+
+/* Responsive consolidation */
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+input,
+select,
+textarea,
+button {
+  max-width: 100%;
+}
+
+.dashboard-page,
+.wallets-page,
+.users-page,
+.balance-page,
+.main-panel,
+.wallets-main,
+.users-main,
+.balance-main,
+.glass-card,
+.wallets-card,
+.kpi-card,
+.audit-card,
+.compliance-card,
+.balance-form-card,
+.balance-summary-card,
+.balance-log-card {
+  min-width: 0;
+}
+
+@media (max-width: 1200px) {
+  .users-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-page,
+  .balance-page {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .topbar,
+  .balance-topbar {
+    position: static;
+    border-radius: 20px;
+    padding: 16px;
+  }
+
+  .topbar,
+  .topbar-actions,
+  .balance-topbar,
+  .balance-topbar-actions,
+  .wallets-header,
+  .wallets-actions,
+  .users-header,
+  .users-actions,
+  .hero-row,
+  .hero-actions,
+  .table-header,
+  .table-footer,
+  .wallets-table-header,
+  .log-header,
+  .modal-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .topbar-actions,
+  .balance-topbar-actions,
+  .wallets-actions,
+  .users-actions,
+  .hero-actions {
+    width: 100%;
+  }
+
+  .search-box,
+  .search-box input,
+  .primary-btn,
+  .logout-btn,
+  .pill,
+  .secondary-button,
+  .primary-button,
+  .status-pill,
+  .wallets-table-header select,
+  .modal-secondary-button,
+  .modal-primary-button {
+    width: 100%;
+  }
+
+  .icon-btn,
+  .icon-button,
+  .profile-button {
+    flex: 0 0 46px;
+  }
+
+  .sidebar-panel,
+  .balance-sidebar,
+  .wallets-sidebar,
+  .users-sidebar {
+    border-radius: 20px;
+    padding: 16px;
+  }
+
+  .sidebar-nav,
+  .wallets-nav,
+  .users-nav,
+  .footer-links,
+  .wallets-sidebar-footer,
+  .users-sidebar-footer,
+  .sidebar-footer {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .nav-item,
+  .sidebar-nav-item,
+  .wallets-nav-item,
+  .users-nav-item,
+  .footer-link,
+  .sidebar-footer-item,
+  .wallets-sidebar-action,
+  .users-sidebar-action,
+  .danger-btn,
+  .emergency-button,
+  .wallets-freeze-button,
+  .users-freeze-button {
+    min-height: 48px;
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .wallets-page,
+  .users-page {
+    display: block;
+  }
+
+  .wallets-sidebar,
+  .users-sidebar {
+    position: static;
+    width: auto;
+    margin: 16px 16px 0;
+    border: 1px solid rgba(67, 70, 85, 0.5);
+  }
+
+  .wallets-main,
+  .users-main {
+    margin-left: 0;
+    padding: 16px;
+    overflow: visible;
+  }
+
+  .wallets-kpi-grid,
+  .wallets-insights-grid,
+  .users-kpi-grid,
+  .users-log-grid,
+  .balance-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .glass-card,
+  .wallets-card,
+  .kpi-card,
+  .audit-card,
+  .compliance-card,
+  .users-table-card,
+  .wallets-table-section,
+  .balance-form-card,
+  .balance-summary-card,
+  .balance-log-card {
+    border-radius: 18px;
+    padding: 18px;
+  }
+
+  .users-table-card,
+  .wallets-table-section {
+    padding: 0;
+  }
+
+  .split-metrics,
+  .summary-grid,
+  .wallets-summary-grid,
+  .network-stats,
+  .field-group {
+    grid-template-columns: 1fr;
+  }
+
+  .table-scroll {
+    margin: 0 -18px;
+    padding: 0 18px 12px;
+  }
+
+  .users-table-card .table-scroll,
+  .wallets-table-section .table-scroll {
+    margin: 0;
+    padding: 0 0 12px;
+  }
+
+  table,
+  .table-scroll table {
+    min-width: 760px;
+  }
+
+  .chart-bars {
+    gap: 6px;
+    min-height: 160px;
+  }
+
+  .toast-notification {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    width: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .auth-shell {
+    align-items: flex-start;
+    padding: 16px;
+  }
+
+  .auth-card {
+    border-radius: 18px;
+    padding: 22px;
+  }
+
+  .auth-card h1,
+  .topbar-start h1,
+  .wallets-header h2,
+  .users-header h2,
+  .balance-topbar h1,
+  .section-headline h2 {
+    font-size: 1.45rem;
+    line-height: 1.15;
+  }
+
+  .subtitle,
+  .wallets-header p,
+  .users-header p,
+  .balance-description,
+  .section-headline p {
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+  .dashboard-page,
+  .balance-page,
+  .wallets-main,
+  .users-main {
+    padding: 12px;
+  }
+
+  .wallets-sidebar,
+  .users-sidebar {
+    margin: 12px 12px 0;
+  }
+
+  .topbar,
+  .balance-topbar,
+  .sidebar-panel,
+  .balance-sidebar,
+  .wallets-sidebar,
+  .users-sidebar,
+  .glass-card,
+  .wallets-card,
+  .kpi-card,
+  .audit-card,
+  .compliance-card,
+  .users-table-card,
+  .wallets-table-section,
+  .modal-card {
+    border-radius: 16px;
+  }
+
+  .topbar,
+  .balance-topbar,
+  .sidebar-panel,
+  .balance-sidebar,
+  .wallets-sidebar,
+  .users-sidebar,
+  .glass-card,
+  .wallets-card,
+  .kpi-card,
+  .audit-card,
+  .compliance-card,
+  .balance-form-card,
+  .balance-summary-card,
+  .balance-log-card,
+  .modal-card {
+    padding: 14px;
+  }
+
+  .sidebar-nav,
+  .wallets-nav,
+  .users-nav,
+  .footer-links,
+  .wallets-sidebar-footer,
+  .users-sidebar-footer,
+  .sidebar-footer {
+    grid-template-columns: 1fr;
+  }
+
+  .brand-block,
+  .wallets-brand,
+  .sidebar-brand,
+  .form-card-header,
+  .wallets-card-header,
+  .card-header,
+  .metric-row,
+  .section-header,
+  .alerts-header,
+  .audit-card-header,
+  .compliance-item,
+  .log-meta,
+  .log-row,
+  .modal-summary div {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .wallets-card-actions,
+  .pagination,
+  .pages,
+  .row-actions {
+    flex-wrap: wrap;
+  }
+
+  .wallets-card-actions button,
+  .pagination button,
+  .page {
+    flex: 1 1 44px;
+  }
+
+  .mobile-nav {
+    height: 68px;
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding: 0 8px;
+  }
+
+  .mobile-nav-item {
+    min-width: 72px;
+  }
+
+  .dashboard-page:has(.mobile-nav) {
+    padding-bottom: 84px;
+  }
+
+  .table-footer {
+    gap: 12px;
+  }
+
+  table,
+  .table-scroll table {
+    min-width: 680px;
+  }
+
+  th,
+  td,
+  thead th,
+  tbody td {
+    padding: 14px 12px;
+    font-size: 0.82rem;
+  }
+
+  .wallets-fab {
+    right: 14px;
+    bottom: 14px;
+  }
+
+  .modal-overlay {
+    padding: 12px;
+    align-items: start;
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 420px) {
+  .chart-bars {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    row-gap: 18px;
+  }
+
+  .status-pill,
+  .primary-btn,
+  .secondary-button,
+  .primary-button,
+  .wallets-card-actions button,
+  .ban-button {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .wallets-card h3,
+  .kpi-card strong,
+  .summary-item strong,
+  .metric-value {
+    font-size: 1.35rem;
+    overflow-wrap: anywhere;
+  }
+}

@@ -4,6 +4,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
+const fs = require('fs');
 const path = require('path');
 const User = require('./models/User');
 const Transaction = require('./models/Transaction');
@@ -40,6 +41,7 @@ const corsOptions = {
       return callback(null, true);
     }
 
+    console.warn(`Blocked by CORS: ${origin}`);
     return callback(new Error('Not allowed by CORS'));
   },
 };
@@ -1436,16 +1438,19 @@ app.patch('/api/admin/withdrawals/:id/deny', ensureDatabaseConnection, requireAu
 
 if (process.env.NODE_ENV === 'production') {
   const frontendDistPath = path.join(__dirname, '..', 'frontend', 'dist');
+  const frontendIndexPath = path.join(frontendDistPath, 'index.html');
 
-  app.use(express.static(frontendDistPath));
+  if (fs.existsSync(frontendIndexPath)) {
+    app.use(express.static(frontendDistPath));
 
-  app.get('/{*path}', (req, res) => {
-    if (req.path.startsWith('/api')) {
-      return res.status(404).json({ message: 'API route not found' });
-    }
+    app.get('/{*path}', (req, res) => {
+      if (req.path.startsWith('/api')) {
+        return res.status(404).json({ message: 'API route not found' });
+      }
 
-    res.sendFile(path.join(frontendDistPath, 'index.html'));
-  });
+      res.sendFile(frontendIndexPath);
+    });
+  }
 }
 
 app.listen(PORT, () => {
