@@ -277,7 +277,7 @@ export function AddFundPage() {
     "Bank Transfer": {
       symbol: "BANK",
       network: "Domestic Settlement",
-      address: "TradiLink Capital Treasury Desk",
+      address: "LG Capital Treasury Desk",
       icon: "fa-building-columns",
       accent: "sky",
       qrLabel: "Review bank instructions",

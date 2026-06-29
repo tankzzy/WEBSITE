@@ -140,7 +140,7 @@ function Login() {
   return (
     <main className="auth-shell">
       <div className="auth-card">
-        <h1>BadAdminTG</h1>
+        <h1>BadAdminLG</h1>
         <p>
           {resetMode
             ? 'Create a reset code and set a new admin password.'

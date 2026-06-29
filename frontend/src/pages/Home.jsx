@@ -242,7 +242,7 @@ function Home() {
             <div className="hero-showcase-card">
               <div className="hero-showcase-head">
                 <div className="hero-showcase-title">
-                  <span className="hero-floating-label">TG Prime Terminal</span>
+                  <span className="hero-floating-label">LG Prime Terminal</span>
                   <strong>Cross-market intelligence</strong>
                 </div>
                 <div className="hero-showcase-chip">Live</div>
