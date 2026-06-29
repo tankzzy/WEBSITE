@@ -283,15 +283,6 @@ export function AddFundPage() {
       qrLabel: "Review bank instructions",
       note: "Use the memo/reference field so finance can match your transfer quickly.",
     },
-    "Perfect Money": {
-      symbol: "PM",
-      network: "Digital Wallet",
-      address: "U47291036",
-      icon: "fa-wallet",
-      accent: "violet",
-      qrLabel: "Use your Perfect Money wallet",
-      note: "Confirm the account number carefully before submitting your deposit.",
-    },
   };
   const currentAsset = assetMeta[formState.method] || assetMeta.USDT;
   const quickAmounts = selectedPlanAmount
@@ -474,27 +465,26 @@ export function AddFundPage() {
                   {fundingIntent === "investment-plan" ? "Payment Method" : "Funding Method"}
                 </label>
                 <select
-                  className="form-input"
-                  value={formState.method}
-                  onChange={(event) =>
-                    setFormState((prev) => ({ ...prev, method: event.target.value }))
-                  }
-                >
-                  {depositMode === "crypto" ? (
-                    <>
-                      <option>BNB</option>
-                      <option>USDT(ERC20)</option>
-                      <option>Solana</option>
-                      <option>USDT</option>
-                      <option>Litecoin</option>
-                      <option>Ethereum</option>
-                      <option>Bitcoin</option>
-                      <option>Perfect Money</option>
-                    </>
-                  ) : (
-                    <option>Bank Transfer</option>
-                  )}
-                </select>
+                className="form-input"
+                value={formState.method}
+                onChange={(event) =>
+                  setFormState((prev) => ({ ...prev, method: event.target.value }))
+                }
+              >
+                {depositMode === "crypto" ? (
+                  <>
+                    <option>BNB</option>
+                    <option>USDT(ERC20)</option>
+                    <option>Solana</option>
+                    <option>USDT</option>
+                    <option>Litecoin</option>
+                    <option>Ethereum</option>
+                    <option>Bitcoin</option>
+                  </>
+                ) : (
+                  <option>Bank Transfer</option>
+                )}
+              </select>
               </div>
               <div className="form-group">
                 <label className="form-label">
