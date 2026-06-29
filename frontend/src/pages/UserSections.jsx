@@ -259,7 +259,7 @@ export function AddFundPage() {
     Bitcoin: {
       symbol: "BTC",
       network: "Native Network",
-      address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+      address: "bc1qa852w9mqgwmn3mxk7sy9whayz9wvdycv24k59e",
       icon: "fa-bitcoin-sign",
       accent: "amber",
       qrLabel: "Scan to deposit BTC",
