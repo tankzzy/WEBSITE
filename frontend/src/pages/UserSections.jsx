@@ -214,7 +214,7 @@ export function AddFundPage() {
     BNB: {
       symbol: "BNB",
       network: "BNB Smart Chain",
-      address: "bnb1ad7x8s9q4x0y2p3l5m7n8r6t1v9z0c5f2k1r7",
+      address: "0xc034308765D568E1E4FF4B00DEb03A81689eCdB8",
       icon: "fa-coins",
       accent: "sky",
       qrLabel: "Scan to deposit BNB",
@@ -223,7 +223,7 @@ export function AddFundPage() {
     "USDT(ERC20)": {
       symbol: "USDT",
       network: "ERC20 Network",
-      address: "0x8abC3C709f7A2E4aB81610C9b71f7d5d4A0137aB",
+      address: "0xc034308765D568E1E4FF4B00DEb03A81689eCdB8",
       icon: "fa-dollar-sign",
       accent: "emerald",
       qrLabel: "Scan to deposit USDT (ERC20)",
@@ -232,7 +232,7 @@ export function AddFundPage() {
     Solana: {
       symbol: "SOL",
       network: "Solana Network",
-      address: "7Pp3K1Q3M7F1tL9N2d4Y8oT6V2rJ4bC8xW5yZ1aQ9pR",
+      address: "Fyp1LDtvisJVaZfYBQLYsJMayphoDUVnbHhm1MJ5AwZc",
       icon: "fa-sun",
       accent: "violet",
       qrLabel: "Scan to deposit Solana",
@@ -241,7 +241,7 @@ export function AddFundPage() {
     USDT: {
       symbol: "USDT",
       network: "TRC20 Network",
-      address: "TXwz8x7q2xgp9n8v2r4s9ucw6p7m1kq4z3",
+      address: "TFWqpEa8wTeSUK2qnpfbTtxJXdpcGZ5KHv",
       icon: "fa-dollar-sign",
       accent: "emerald",
       qrLabel: "Scan to deposit USDT",
@@ -250,7 +250,7 @@ export function AddFundPage() {
     Ethereum: {
       symbol: "ETH",
       network: "ERC20 Native",
-      address: "0x61A4D08a8B1E4c60E4aB8aD92A6847B6f5E8c9d2",
+      address: "0xc034308765D568E1E4FF4B00DEb03A81689eCdB8",
       icon: "fa-diamond",
       accent: "sky",
       qrLabel: "Scan to deposit Ethereum",
@@ -268,7 +268,7 @@ export function AddFundPage() {
     Litecoin: {
       symbol: "LTC",
       network: "Litecoin Network",
-      address: "ltc1q0vmx7w3n9k5q8h2r7d1c6p4t9s0l3m2n5v8k4j",
+      address: "ltc1qe9f226nxwtndetd3ptq54l8r4geqdl7f7phdsy",
       icon: "fa-litecoin-sign",
       accent: "amber",
       qrLabel: "Scan to deposit Litecoin",
