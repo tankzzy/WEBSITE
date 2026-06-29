@@ -151,6 +151,7 @@ function UserManagement() {
   const totalUsers = users.length;
   const pendingCount = users.filter((user) => user.statusTone === 'pending').length;
   const flaggedCount = users.filter((user) => user.statusTone === 'rejected').length;
+  const activeCount = users.filter((user) => String(user.status).toLowerCase() === 'active').length;
 
   async function refreshUsers() {
     setLoading(true);
@@ -301,6 +302,19 @@ function UserManagement() {
 
   return (
     <div className="users-page">
+      <header className="users-mobile-topbar">
+        <div>
+          <h1>Admin Console</h1>
+          <p>V2.4.0 High-Priority Access</p>
+        </div>
+        <div className="users-mobile-topbar-actions">
+          <button type="button" aria-label="Notifications">
+            <span className="material-symbols-outlined">notifications</span>
+          </button>
+          <div className="users-mobile-avatar">AU</div>
+        </div>
+      </header>
+
       <aside className="users-sidebar">
         <div className="users-brand">
           <h1>Admin Console</h1>
@@ -339,6 +353,20 @@ function UserManagement() {
       </aside>
 
       <main className="users-main">
+        <section className="users-mobile-hero">
+          <p>Security Command</p>
+          <div>
+            <div>
+              <h2>User Management</h2>
+              <span>{totalUsers} active accounts monitored.</span>
+            </div>
+            <button type="button">
+              <span className="material-symbols-outlined">add</span>
+              Provision
+            </button>
+          </div>
+        </section>
+
         <header className="users-header">
           <div>
             <p className="users-eyebrow">Security Command</p>
@@ -396,6 +424,41 @@ function UserManagement() {
           </article>
         </section>
 
+        <section className="users-mobile-stats custom-scrollbar" aria-label="User stats">
+          <article>
+            <p>Total Users</p>
+            <strong>{totalUsers}</strong>
+            <span className="positive">
+              <span className="material-symbols-outlined">trending_up</span>
+              Live admin count
+            </span>
+          </article>
+          <article>
+            <p>Pending KYC</p>
+            <strong>{pendingCount}</strong>
+            <span>
+              <span className="material-symbols-outlined">fact_check</span>
+              Queued for review
+            </span>
+          </article>
+          <article>
+            <p>Active Sessions</p>
+            <strong>{activeCount}</strong>
+            <span className="blue">
+              <span className="material-symbols-outlined">bolt</span>
+              Live accounts
+            </span>
+          </article>
+          <article>
+            <p>Banned/Flagged</p>
+            <strong>{flaggedCount}</strong>
+            <span className="danger">
+              <span className="material-symbols-outlined">warning</span>
+              Risk detected
+            </span>
+          </article>
+        </section>
+
         <section className="users-filter-bar">
           <div className="search-field">
             <span className="material-symbols-outlined">search</span>
@@ -427,6 +490,71 @@ function UserManagement() {
           <button type="button" className="icon-button small" aria-label="Filter" disabled>
             <span className="material-symbols-outlined">tune</span>
           </button>
+        </section>
+
+        <section className="users-mobile-cards" aria-label="Mobile user list">
+          {loading && <div className="loading-banner">Loading user data...</div>}
+          {error && <div className="error-banner">{error}</div>}
+          {users.map((user) => {
+            const isFlagged = user.statusTone === 'rejected';
+            const riskTone = isFlagged ? 'danger' : user.statusTone === 'pending' ? 'warning' : 'success';
+
+            return (
+              <article key={user.id} className={`users-mobile-card ${isFlagged ? 'danger' : ''}`}>
+                <div className="users-mobile-card-head">
+                  <div className="users-mobile-person">
+                    <div className="users-mobile-initial">{user.name?.charAt(0) || 'U'}</div>
+                    <div>
+                      <h3>{user.name}</h3>
+                      <p>{user.email}</p>
+                    </div>
+                  </div>
+                  <span className={`users-mobile-status ${user.statusTone}`}>{user.status}</span>
+                </div>
+
+                <div className="users-mobile-metrics">
+                  <div>
+                    <p>Balance</p>
+                    <strong>
+                      {user.balance} <span>{user.tier}</span>
+                    </strong>
+                  </div>
+                  <div>
+                    <p>Risk Level</p>
+                    <div className="users-mobile-risk-track">
+                      <span className={riskTone} style={{ width: `${user.riskValue}%` }} />
+                    </div>
+                    <strong className={riskTone}>{user.risk}</strong>
+                  </div>
+                </div>
+
+                <div className="users-mobile-card-actions">
+                  {isFlagged ? (
+                    <>
+                      <button type="button" className="light" onClick={() => handleBan(user)} disabled={actionLoading}>
+                        UNBAN
+                      </button>
+                      <button type="button" className="danger" onClick={() => handleDelete(user)} disabled={actionLoading}>
+                        DELETE
+                      </button>
+                      <button type="button" className="icon" onClick={() => handleOpenEdit(user)} aria-label="Edit user">
+                        <span className="material-symbols-outlined">edit</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button type="button" onClick={() => handleOpenEdit(user)}>
+                        Manage
+                      </button>
+                      <button type="button" className="icon" onClick={() => handleBan(user)} aria-label="Ban user">
+                        <span className="material-symbols-outlined">more_vert</span>
+                      </button>
+                    </>
+                  )}
+                </div>
+              </article>
+            );
+          })}
         </section>
 
         <section className="users-table-card">
@@ -518,6 +646,17 @@ function UserManagement() {
               </button>
             </div>
           </div>
+        </section>
+
+        <section className="users-mobile-secondary-actions">
+          <button type="button">
+            <span className="material-symbols-outlined">download</span>
+            Export User Data (CSV)
+          </button>
+          <button type="button" className="danger">
+            <span className="material-symbols-outlined">lock</span>
+            Emergency Freeze
+          </button>
         </section>
 
         {editModalOpen && selectedUser && (
@@ -636,6 +775,24 @@ function UserManagement() {
           </div>
         </section>
       </main>
+
+      <nav className="users-mobile-bottom-nav" aria-label="Mobile admin navigation">
+        {sidebarItems.filter((item) => item.label !== 'Security' && item.label !== 'Adjustments').map((item) => (
+          <button
+            key={item.label}
+            type="button"
+            className={location.pathname === item.path ? 'active' : ''}
+            onClick={() => item.path && navigate(item.path)}
+          >
+            <span className="material-symbols-outlined">{item.icon}</span>
+            <span>{item.label === 'Withdrawals' ? 'Withdraw' : item.label}</span>
+          </button>
+        ))}
+        <button type="button">
+          <span className="material-symbols-outlined">menu</span>
+          <span>Menu</span>
+        </button>
+      </nav>
     </div>
   );
 }
