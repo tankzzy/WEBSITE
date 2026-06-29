@@ -1102,9 +1102,15 @@ app.post('/api/withdrawals', ensureDatabaseConnection, requireAuth, async (req, 
       return res.status(400).json({ message: 'Insufficient balance for withdrawal' });
     }
 
-    await User.findByIdAndUpdate(req.authUser._id, {
-      $inc: { mainBalance: -withdrawalAmount },
-    });
+    const updatedUser = await User.findByIdAndUpdate(
+      req.authUser._id,
+      {
+        $inc: { mainBalance: -withdrawalAmount, totalPayout: withdrawalAmount },
+      },
+      { new: true }
+    ).select('-password');
+
+    await ensureUserReferralCode(updatedUser);
 
     const transaction = await Transaction.create({
       user: req.authUser._id,
@@ -1120,6 +1126,7 @@ app.post('/api/withdrawals', ensureDatabaseConnection, requireAuth, async (req, 
     res.status(201).json({
       message: 'Withdrawal request created successfully',
       transaction: serializeTransaction(transaction),
+      user: serializeUser(updatedUser),
     });
   } catch (error) {
     console.error('Create withdrawal error:', error);

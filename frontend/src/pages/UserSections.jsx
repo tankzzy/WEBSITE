@@ -192,7 +192,7 @@ export function InvestHistoryPage() {
 
 export function AddFundPage() {
   const location = useLocation();
-  const { user } = useAuthenticatedUser();
+  const { user, setUser } = useAuthenticatedUser();
   const { items, setItems, message, loading } = useProtectedCollection(
     "/api/transactions",
     "transactions",
@@ -205,6 +205,7 @@ export function AddFundPage() {
   const [depositMode, setDepositMode] = useState("crypto");
   const [feedback, setFeedback] = useState("");
   const [feedbackType, setFeedbackType] = useState("");
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const searchParams = new URLSearchParams(location.search);
   const fundingIntent = searchParams.get("intent") || "";
   const selectedPlanId = searchParams.get("planId") || "";
@@ -309,11 +310,22 @@ export function AddFundPage() {
     }
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = (event) => {
     event.preventDefault();
     setFeedback("");
 
+    if (!formState.amount || parseFloat(formState.amount) <= 0) {
+      setFeedbackType("loss");
+      setFeedback("Please enter a valid deposit amount.");
+      return;
+    }
+
+    setShowConfirmation(true);
+  };
+
+  const handleConfirmDeposit = async () => {
     try {
+      setShowConfirmation(false);
       const response = await fetch(apiUrl("/api/deposits"), {
         method: "POST",
         headers: {
@@ -335,6 +347,12 @@ export function AddFundPage() {
       }
 
       setItems((prev) => [data.transaction, ...prev]);
+      
+      if (data.user) {
+        setUser(data.user);
+        localStorage.setItem("authUser", JSON.stringify(data.user));
+      }
+
       setFormState({
         amount: fundingIntent === "investment-plan" ? selectedPlanAmount : "",
         method: "USDT",
@@ -349,6 +367,10 @@ export function AddFundPage() {
       setFeedbackType("loss");
       setFeedback(error.message);
     }
+  };
+
+  const handleCancelDeposit = () => {
+    setShowConfirmation(false);
   };
 
   const depositRows = items
@@ -677,6 +699,59 @@ export function AddFundPage() {
         rows={depositRows}
         emptyText={loading ? "Loading deposit requests..." : message || "No deposit requests yet."}
       />
+
+      {/* Confirmation Modal */}
+      {showConfirmation && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div className="glass-panel" style={{
+            padding: '2rem',
+            maxWidth: '500px',
+            width: '100%',
+            borderRadius: '8px'
+          }}>
+            <h3 style={{ marginBottom: '1.5rem', textAlign: 'center' }}>Confirm Deposit</h3>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <p><strong>Amount:</strong> ${parseFloat(formState.amount).toLocaleString()}</p>
+              <p><strong>Method:</strong> {formState.method}</p>
+              <p><strong>Network:</strong> {currentAsset.network}</p>
+              <p><strong>Address:</strong> {currentAsset.address}</p>
+              {formState.details && <p><strong>Reference:</strong> {formState.details}</p>}
+            </div>
+            <p style={{ marginBottom: '1.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+              Please double-check the address and amount before confirming. Sending to the wrong address may result in permanent loss of funds.
+            </p>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button
+                type="button"
+                className="btn-outline"
+                style={{ flex: 1 }}
+                onClick={handleCancelDeposit}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                style={{ flex: 1 }}
+                onClick={handleConfirmDeposit}
+              >
+                Confirm Deposit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </UserDashboardLayout>
   );
 }
@@ -878,15 +953,9 @@ export function WithdrawalPage() {
 
       setItems((prev) => [data.transaction, ...prev]);
 
-      if (user && typeof formState.amount !== "undefined") {
-        if (!Number.isNaN(withdrawalAmount)) {
-          const updatedUser = {
-            ...user,
-            mainBalance: Number(user.mainBalance || 0) - withdrawalAmount,
-          };
-          setUser(updatedUser);
-          localStorage.setItem("authUser", JSON.stringify(updatedUser));
-        }
+      if (data.user) {
+        setUser(data.user);
+        localStorage.setItem("authUser", JSON.stringify(data.user));
       }
 
       setFormState({ amount: "", method: "USDT", details: "" });
