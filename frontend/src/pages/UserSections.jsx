@@ -129,6 +129,13 @@ function useProtectedCollection(path, key) {
   return { items, setItems, message, loading };
 }
 
+function formatCurrency(value) {
+  return `$${Number(value || 0).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
 export function InvestHistoryPage() {
   const { user } = useAuthenticatedUser();
   const { items } = useProtectedCollection("/api/investments", "investments");
@@ -270,7 +277,7 @@ export function AddFundPage() {
     "Bank Transfer": {
       symbol: "BANK",
       network: "Domestic Settlement",
-      address: "TradiLink Capital Treasury Desk",
+      address: "LG Capital Treasury Desk",
       icon: "fa-building-columns",
       accent: "sky",
       qrLabel: "Review bank instructions",
@@ -830,6 +837,7 @@ export function TransactionPage() {
 }
 
 export function WithdrawalPage() {
+  const { user, setUser } = useAuthenticatedUser();
   const { items, setItems } = useProtectedCollection("/api/withdrawals", "withdrawals");
   const [formState, setFormState] = useState({
     amount: "",
@@ -838,12 +846,31 @@ export function WithdrawalPage() {
   });
   const [feedback, setFeedback] = useState("");
   const [feedbackType, setFeedbackType] = useState("");
+  const availableBalance = Math.max(Number(user?.mainBalance || 0), 0);
+  const eligibleWithdrawalAmount = availableBalance;
+  const requestedAmount = Number(formState.amount || 0);
+  const remainingEligibleAmount = Math.max(
+    eligibleWithdrawalAmount - (Number.isFinite(requestedAmount) ? requestedAmount : 0),
+    0,
+  );
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setFeedback("");
 
     try {
+      const withdrawalAmount = Number(formState.amount);
+
+      if (!Number.isFinite(withdrawalAmount) || withdrawalAmount <= 0) {
+        throw new Error("Enter a valid withdrawal amount.");
+      }
+
+      if (withdrawalAmount > eligibleWithdrawalAmount) {
+        throw new Error(
+          `You can withdraw up to ${formatCurrency(eligibleWithdrawalAmount)} from your available balance.`,
+        );
+      }
+
       const response = await fetch(apiUrl("/api/withdrawals"), {
         method: "POST",
         headers: {
@@ -860,6 +887,18 @@ export function WithdrawalPage() {
       }
 
       setItems((prev) => [data.transaction, ...prev]);
+
+      if (user && typeof formState.amount !== "undefined") {
+        if (!Number.isNaN(withdrawalAmount)) {
+          const updatedUser = {
+            ...user,
+            mainBalance: Number(user.mainBalance || 0) - withdrawalAmount,
+          };
+          setUser(updatedUser);
+          localStorage.setItem("authUser", JSON.stringify(updatedUser));
+        }
+      }
+
       setFormState({ amount: "", method: "USDT", details: "" });
       setFeedbackType("profit");
       setFeedback(data.message);
@@ -884,6 +923,20 @@ export function WithdrawalPage() {
             <h3>Withdrawal Form</h3>
             <p>Requests are reviewed manually before release to the selected payout destination.</p>
           </div>
+          <div className="withdrawal-balance-strip">
+            <div>
+              <span>Available balance</span>
+              <strong>{formatCurrency(availableBalance)}</strong>
+            </div>
+            <div>
+              <span>Eligible for withdrawal</span>
+              <strong>{formatCurrency(eligibleWithdrawalAmount)}</strong>
+            </div>
+            <div>
+              <span>Eligible after this request</span>
+              <strong>{formatCurrency(remainingEligibleAmount)}</strong>
+            </div>
+          </div>
           <form className="user-form-grid" onSubmit={handleSubmit}>
             <div className={`form-message ${feedbackType}`}>{feedback || " "}</div>
             <div className="form-group">
@@ -891,12 +944,18 @@ export function WithdrawalPage() {
               <input
                 className="form-input"
                 type="number"
+                min="0.01"
+                step="0.01"
+                max={eligibleWithdrawalAmount}
                 value={formState.amount}
                 onChange={(event) =>
                   setFormState((prev) => ({ ...prev, amount: event.target.value }))
                 }
                 placeholder="Enter amount"
               />
+              <span className="add-fund-field-note">
+                Maximum withdrawal: {formatCurrency(eligibleWithdrawalAmount)}
+              </span>
             </div>
             <div className="form-group">
               <label className="form-label">Withdrawal Method</label>
@@ -924,7 +983,7 @@ export function WithdrawalPage() {
               />
             </div>
             <div className="user-form-action">
-              <button type="submit" className="btn-primary">
+              <button type="submit" className="btn-primary" disabled={eligibleWithdrawalAmount <= 0}>
                 Submit Withdrawal
               </button>
             </div>

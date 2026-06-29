@@ -157,6 +157,12 @@ p {
   box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
 }
 
+.btn-primary:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 .btn-outline {
   background: transparent;
   color: var(--gold);
@@ -456,6 +462,29 @@ p {
 .auth-btn:disabled {
   opacity: 0.7;
   cursor: wait;
+}
+
+.auth-inline-link {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--gold);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  justify-self: start;
+  padding: 0;
+  text-align: left;
+}
+
+.auth-inline-link:hover {
+  color: var(--gold-hover);
+}
+
+.auth-inline-link.centered {
+  justify-self: center;
+  margin-top: 0.15rem;
 }
 
 .auth-footer {
@@ -970,6 +999,34 @@ p {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
+}
+
+.withdrawal-balance-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.withdrawal-balance-strip div {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.9rem 1rem;
+  border-radius: 16px;
+  background: var(--bg-strong);
+  border: 1px solid var(--border-light);
+}
+
+.withdrawal-balance-strip span {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.withdrawal-balance-strip strong {
+  color: var(--heading-color);
+  font-size: 1.15rem;
 }
 
 .user-form-span {
@@ -2864,6 +2921,7 @@ p {
   .user-section-grid,
   .add-fund-grid,
   .user-two-column,
+  .withdrawal-balance-strip,
   .admin-summary-grid,
   .admin-form-grid,
   .user-form-grid,
@@ -6277,6 +6335,14 @@ body[data-theme="light"] .home-exchange .plan-limits em {
 }
 
 .login-shell .auth-footer a:hover {
+  color: #5ce9fb;
+}
+
+.login-shell .auth-inline-link {
+  color: #00daf3;
+}
+
+.login-shell .auth-inline-link:hover {
   color: #5ce9fb;
 }
 

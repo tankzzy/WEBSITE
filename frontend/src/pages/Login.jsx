@@ -14,6 +14,14 @@ function Login() {
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [resetMode, setResetMode] = useState(false);
+  const [resetForm, setResetForm] = useState({
+    email: "",
+    token: "",
+    password: "",
+  });
+  const [resetStep, setResetStep] = useState("request");
+  const [resetLoading, setResetLoading] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -56,6 +64,96 @@ function Login() {
     }
   };
 
+  const handleResetChange = (event) => {
+    const { name, value } = event.target;
+    setResetForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleForgotPassword = async (event) => {
+    event.preventDefault();
+    setResetLoading(true);
+    setMessage("");
+
+    try {
+      const response = await fetch(apiUrl("/api/forgot-password"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resetForm.email }),
+      });
+
+      const data = await parseApiResponse(response);
+
+      if (!response.ok) {
+        setMessageType("loss");
+        setMessage(data.message || "Unable to create reset code.");
+        return;
+      }
+
+      setMessageType("profit");
+      setMessage(
+        data.resetToken
+          ? `Reset code: ${data.resetToken}`
+          : data.message || "Reset code created. Check your email.",
+      );
+      setResetForm((prev) => ({ ...prev, token: data.resetToken || prev.token }));
+      setResetStep("reset");
+    } catch (error) {
+      setMessageType("loss");
+      setMessage("Unable to reach the server. Make sure the backend is running.");
+      console.error(error);
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (event) => {
+    event.preventDefault();
+    setResetLoading(true);
+    setMessage("");
+
+    try {
+      const response = await fetch(apiUrl("/api/reset-password"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(resetForm),
+      });
+
+      const data = await parseApiResponse(response);
+
+      if (!response.ok) {
+        setMessageType("loss");
+        setMessage(data.message || "Unable to reset password.");
+        return;
+      }
+
+      setMessageType("profit");
+      setMessage(data.message || "Password reset successfully.");
+      setFormState((prev) => ({ ...prev, email: resetForm.email, password: "" }));
+      setResetForm({ email: "", token: "", password: "" });
+      setResetStep("request");
+      setResetMode(false);
+    } catch (error) {
+      setMessageType("loss");
+      setMessage("Unable to reach the server. Make sure the backend is running.");
+      console.error(error);
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const showResetMode = () => {
+    setResetMode(true);
+    setResetStep("request");
+    setResetForm((prev) => ({ ...prev, email: formState.email }));
+    setMessage("");
+  };
+
+  const showLoginMode = () => {
+    setResetMode(false);
+    setResetStep("request");
+    setMessage("");
+  };
+
   return (
     <main className="auth-shell login-shell">
       <div className="hero-bg-accent" />
@@ -66,12 +164,17 @@ function Login() {
 
         <section className="login-layout">
           <div className="auth-card login-card">
-            <div className="a uth-header login-header">
+            <div className="auth-header login-header">
               <span className="auth-badge">Member Access</span>
-              <h2>Log In</h2>
-              <p>Enter your details to reopen your trading workspace.</p>
+              <h2>{resetMode ? "Reset Password" : "Log In"}</h2>
+              <p>
+                {resetMode
+                  ? "Create a reset code and choose a new password."
+                  : "Enter your details to reopen your trading workspace."}
+              </p>
             </div>
 
+            {!resetMode ? (
             <form onSubmit={handleSubmit} id="loginForm" className="auth-form">
               <div className={`form-message ${messageType}`}>
                 {message || " "}
@@ -107,6 +210,13 @@ function Login() {
                   value={formState.password}
                   onChange={handleChange}
                 />
+                <button
+                  type="button"
+                  className="auth-inline-link"
+                  onClick={showResetMode}
+                >
+                  Forgot password?
+                </button>
               </div>
 
               <button
@@ -125,6 +235,85 @@ function Login() {
                 )}
               </button>
             </form>
+            ) : (
+            <form
+              onSubmit={resetStep === "request" ? handleForgotPassword : handleResetPassword}
+              className="auth-form"
+            >
+              <div className={`form-message ${messageType}`}>
+                {message || " "}
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="reset-email">
+                  Email Address
+                </label>
+                <input
+                  className="form-input"
+                  id="reset-email"
+                  name="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  required
+                  value={resetForm.email}
+                  onChange={handleResetChange}
+                />
+              </div>
+
+              {resetStep === "reset" ? (
+                <>
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="reset-token">
+                      Reset Code
+                    </label>
+                    <input
+                      className="form-input"
+                      id="reset-token"
+                      name="token"
+                      type="text"
+                      placeholder="Paste your reset code"
+                      required
+                      value={resetForm.token}
+                      onChange={handleResetChange}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="reset-password">
+                      New Password
+                    </label>
+                    <input
+                      className="form-input"
+                      id="reset-password"
+                      name="password"
+                      type="password"
+                      placeholder="Enter a new password"
+                      minLength={6}
+                      required
+                      value={resetForm.password}
+                      onChange={handleResetChange}
+                    />
+                  </div>
+                </>
+              ) : null}
+
+              <button
+                type="submit"
+                className="btn-primary auth-btn"
+                disabled={resetLoading}
+              >
+                {resetLoading
+                  ? "Please wait..."
+                  : resetStep === "request"
+                    ? "Create Reset Code"
+                    : "Reset Password"}
+              </button>
+
+              <button type="button" className="auth-inline-link centered" onClick={showLoginMode}>
+                Back to login
+              </button>
+            </form>
+            )}
 
             <div className="auth-footer">
               Don&apos;t have an account? <Link to="/signup">Sign Up</Link>
